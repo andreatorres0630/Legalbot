@@ -1,7 +1,6 @@
 <template>
   <div class="admin-layout">
 
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-icon">
@@ -187,7 +186,7 @@
         </table>
       </div>
 
-      <!-- Modal nuevo usuario -->
+      <!-- Apartado de nuevo usuario -->
       <div v-if="modalAbierto" class="modal-backdrop" @click.self="cerrarModal">
         <div class="modal">
           <div class="modal-header">
@@ -292,7 +291,7 @@ export default {
   font-family: 'Sora', sans-serif; background: #f3f4f6;
 }
 
-/* ── SIDEBAR (igual que Dashboard) ── */
+
 .sidebar {
   width: 210px; min-height: 100vh; background: #0f172a;
   display: flex; flex-direction: column;
@@ -321,7 +320,7 @@ export default {
 .logout-item { color: rgba(255,100,100,0.7); }
 .logout-item:hover { background: rgba(255,80,80,0.1); color: rgba(255,120,120,0.9); }
 
-/* ── MAIN ── */
+
 .main-content { margin-left: 210px; flex: 1; padding: 36px 32px; min-height: 100vh; }
 
 .page-header {
@@ -339,7 +338,7 @@ export default {
 }
 .btn-nuevo:hover { background: #6358e8; }
 
-/* Filters */
+
 .filters-bar {
   display: flex; gap: 12px; margin-bottom: 20px;
 }
@@ -359,7 +358,7 @@ export default {
   background: #fff; outline: none; cursor: pointer;
 }
 
-/* Stats row */
+
 .stats-row { display: flex; gap: 14px; margin-bottom: 20px; }
 .stat-pill {
   background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
@@ -375,7 +374,7 @@ export default {
 .stat-label { font-size: 11px; color: #6b7280; }
 .stat-val   { font-size: 22px; font-weight: 700; color: #111827; line-height: 1.2; }
 
-/* Table */
+
 .table-card {
   background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;
 }
@@ -414,7 +413,7 @@ export default {
 .btn-accion.eliminar{ background: #fef2f2; color: #dc2626; }
 .btn-accion:hover   { opacity: 0.8; }
 
-/* Modal */
+
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,0.45);
   display: flex; align-items: center; justify-content: center; z-index: 200;

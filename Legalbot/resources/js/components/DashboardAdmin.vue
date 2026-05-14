@@ -1,7 +1,7 @@
 <template>
   <div class="admin-layout">
 
-    <!-- Sidebar -->
+
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-icon">
@@ -61,14 +61,14 @@
       </div>
     </aside>
 
-    <!-- Main content -->
+
     <main class="main-content">
       <div class="page-header">
         <h1 class="page-title">Dashboard</h1>
         <p class="page-subtitle">Bienvenido al panel administrativo de LegalBot</p>
       </div>
 
-      <!-- Stats cards -->
+  
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon icon-blue">
@@ -216,7 +216,6 @@ export default {
   background: #f3f4f6;
 }
 
-/* ── SIDEBAR ── */
 .sidebar {
   width: 210px;
   min-height: 100vh;
@@ -285,7 +284,7 @@ export default {
 .logout-item { color: rgba(255,100,100,0.7); }
 .logout-item:hover { background: rgba(255,80,80,0.1); color: rgba(255,120,120,0.9); }
 
-/* ── MAIN ── */
+
 .main-content {
   margin-left: 210px;
   flex: 1;
@@ -297,7 +296,7 @@ export default {
 .page-title { font-size: 26px; font-weight: 700; color: #111827; letter-spacing: -0.02em; }
 .page-subtitle { font-size: 13px; color: #6b7280; margin-top: 4px; font-weight: 300; }
 
-/* ── STATS ── */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -337,7 +336,7 @@ export default {
 .stat-change.positive { background: #f0fdf4; color: #16a34a; }
 .stat-change.neutral  { background: #f3f4f6; color: #6b7280; }
 
-/* ── DASHBOARD GRID ── */
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -358,7 +357,7 @@ export default {
 
 .card-title { font-size: 15px; font-weight: 600; color: #111827; }
 
-/* Activity */
+/* Actividad */
 .activity-list { padding: 8px 0; }
 .activity-item {
   display: flex; align-items: flex-start; gap: 12px;
@@ -379,7 +378,7 @@ export default {
 .activity-text { font-size: 13px; color: #374151; font-weight: 400; }
 .activity-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
 
-/* Quick links */
+
 .quick-links { padding: 8px 0; }
 .quick-link {
   display: flex; align-items: center; gap: 14px;
