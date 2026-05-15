@@ -1,6 +1,6 @@
 <template>
   <div class="admin-layout">
-
+    <!-- Sidebar Izquierdo Fijo (Estilo LegalBot) -->
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-icon">
@@ -22,14 +22,14 @@
           </svg>
           Dashboard
         </a>
-        <a href="#" class="nav-item active">
+        <a href="#" class="nav-item">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
           </svg>
           Gestión de Usuarios
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" class="nav-item active">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
           </svg>
@@ -63,14 +63,14 @@
     <main class="main-content">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Gestión de Usuarios</h1>
-          <p class="page-subtitle">Administra los usuarios registrados en la plataforma</p>
+          <h1 class="page-title">Gestión de Abogados</h1>
+          <p class="page-subtitle">Administra el directorio legal registrado en la plataforma</p>
         </div>
         <button class="btn-nuevo" @click="abrirModal">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Nuevo usuario
+          Nuevo abogado
         </button>
       </div>
 
@@ -80,18 +80,16 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input
-            v-model="busqueda"
-            type="text"
-            class="search-input"
-            placeholder="Buscar usuario..."
-          />
+          <input type="text" class="search-input" placeholder="Buscar abogado..." />
         </div>
-        <select v-model="filtroRol" class="select-filter">
-          <option value="">Todos los roles</option>
-          <option value="Admin">Admin</option>
-          <option value="Usuario">Usuario</option>
-          <option value="Abogado">Abogado</option>
+        <select class="select-filter">
+          <option value="">Todas las especialidades</option>
+          <option>Derecho Civil</option>
+          <option>Derecho Penal</option>
+          <option>Derecho Laboral</option>
+          <option>Derecho de Familia</option>
+          <option>Derecho Mercantil</option>
+          <option>Derecho Tributario</option>
         </select>
       </div>
 
@@ -101,12 +99,11 @@
           <div class="stat-icon-sm blue">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
             </svg>
           </div>
           <div>
-            <p class="stat-label">Total Usuarios</p>
-            <p class="stat-val">{{ usuarios.length }}</p>
+            <p class="stat-label">Total Abogados</p>
+            <p class="stat-val">3</p>
           </div>
         </div>
         <div class="stat-pill">
@@ -117,7 +114,7 @@
           </div>
           <div>
             <p class="stat-label">Activos</p>
-            <p class="stat-val">{{ usuarios.filter(u => u.estado === 'Activo').length }}</p>
+            <p class="stat-val">1</p>
           </div>
         </div>
         <div class="stat-pill">
@@ -129,7 +126,7 @@
           </div>
           <div>
             <p class="stat-label">Pendientes</p>
-            <p class="stat-val">{{ usuarios.filter(u => u.estado === 'Pendiente').length }}</p>
+            <p class="stat-val">1</p>
           </div>
         </div>
       </div>
@@ -141,24 +138,22 @@
             <tr>
               <th>ID</th>
               <th>Nombre</th>
+              <th>Especialidad</th>
               <th>Correo</th>
-              <th>Rol</th>
               <th>Teléfono</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="usuario in usuariosFiltrados" :key="usuario.id">
-              <td class="cell-id">{{ usuario.id }}</td>
-              <td class="cell-nombre">{{ usuario.nombre }}</td>
-              <td class="cell-correo">{{ usuario.correo }}</td>
+            <tr v-for="abogado in abogados" :key="abogado.id">
+              <td class="cell-id">#{{ abogado.id }}</td>
+              <td class="cell-nombre">{{ abogado.nombre }}</td>
+              <td>{{ abogado.especialidad }}</td>
+              <td class="cell-correo">{{ abogado.correo }}</td>
+              <td>{{ abogado.telefono }}</td>
               <td>
-                <span :class="['badge-rol', usuario.rol.toLowerCase()]">{{ usuario.rol }}</span>
-              </td>
-              <td>{{ usuario.telefono }}</td>
-              <td>
-                <span :class="['badge-estado', usuario.estado.toLowerCase()]">{{ usuario.estado }}</span>
+                <span :class="['badge-estado', abogado.estado.toLowerCase()]">{{ abogado.estado }}</span>
               </td>
               <td>
                 <div class="acciones">
@@ -186,96 +181,102 @@
         </table>
       </div>
 
-      <!-- Apartado de nuevo usuario -->
+      <!-- Modal Nuevo Abogado -->
       <div v-if="modalAbierto" class="modal-backdrop" @click.self="cerrarModal">
         <div class="modal">
           <div class="modal-header">
-            <h3 class="modal-title">Nuevo usuario</h3>
-            <button class="modal-close" @click="cerrarModal">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
+            <h3 class="modal-title">Nuevo abogado</h3>
+            <button class="modal-close" @click="cerrarModal">×</button>
           </div>
           <div class="modal-body">
             <div class="form-row">
               <div class="form-group">
                 <label>Nombre completo</label>
-                <input v-model="nuevoUsuario.nombre" type="text" placeholder="Ej. Juan Pérez" />
+                <input v-model="nuevoAbogado.nombre" type="text" placeholder="Ej. Lic. Roberto Flores" />
               </div>
               <div class="form-group">
-                <label>Correo electrónico</label>
-                <input v-model="nuevoUsuario.correo" type="email" placeholder="correo@ejemplo.com" />
+                <label>Especialidad</label>
+                <input v-model="nuevoAbogado.especialidad" type="text" placeholder="Ej. Penalista" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Teléfono</label>
-                <input v-model="nuevoUsuario.telefono" type="text" placeholder="2234-5678" />
+                <input v-model="nuevoAbogado.telefono" type="text" placeholder="2200-0000" />
               </div>
               <div class="form-group">
-                <label>Rol</label>
-                <select v-model="nuevoUsuario.rol">
-                  <option value="">Seleccionar rol</option>
-                  <option>Admin</option>
-                  <option>Usuario</option>
-                  <option>Abogado</option>
+                <label>WhatsApp</label>
+                <input v-model="nuevoAbogado.whatsapp" type="text" placeholder="7000-0000" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Correo electrónico</label>
+              <input v-model="nuevoAbogado.correo" type="email" placeholder="abogado@legalbot.sv" />
+            </div>
+            <div class="form-group">
+              <label>Dirección</label>
+              <input v-model="nuevoAbogado.direccion" type="text" placeholder="San Miguel, El Salvador" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Disponibilidad</label>
+                <select v-model="nuevoAbogado.disponibilidad">
+                  <option>Tiempo completo</option>
+                  <option>Horas oficina</option>
+                  <option>Fines de semana</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Verificado</label>
+                <select v-model="nuevoAbogado.verificado">
+                  <option value="No">No</option>
+                  <option value="Si">Sí</option>
                 </select>
               </div>
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn-cancelar" @click="cerrarModal">Cancelar</button>
-            <button class="btn-guardar" @click="guardarUsuario">Guardar usuario</button>
+            <button class="btn-guardar" @click="guardarAbogado">Guardar abogado</button>
           </div>
         </div>
       </div>
-
     </main>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'GestionUsuariosView',
+  name: 'GestionAbogadosView',
   data() {
     return {
-      busqueda: '',
-      filtroRol: '',
       modalAbierto: false,
-      nuevoUsuario: { nombre: '', correo: '', telefono: '', rol: '' },
-      usuarios: [
-        { id: '#001', nombre: 'Admin Sistema',    correo: 'admin@legalbot.sv',    rol: 'Admin',   telefono: '2200-0001', estado: 'Activo' },
-        { id: '#002', nombre: 'María López',      correo: 'maria@legalbot.sv',    rol: 'Usuario', telefono: '2234-5678', estado: 'Activo' },
-        { id: '#003', nombre: 'Carlos Rivas',     correo: 'carlos@legalbot.sv',   rol: 'Usuario', telefono: '2245-6789', estado: 'Pendiente' },
-        { id: '#004', nombre: 'Ana Martínez',     correo: 'ana@legalbot.sv',      rol: 'Abogado', telefono: '2256-7890', estado: 'Activo' },
-        { id: '#005', nombre: 'José Hernández',   correo: 'jose@legalbot.sv',     rol: 'Usuario', telefono: '2267-8901', estado: 'Inactivo' },
-        { id: '#006', nombre: 'Laura Castillo',   correo: 'laura@legalbot.sv',    rol: 'Usuario', telefono: '2278-9012', estado: 'Activo' },
-        { id: '#007', nombre: 'Pedro Morales',    correo: 'pedro@legalbot.sv',    rol: 'Abogado', telefono: '2289-0123', estado: 'Pendiente' },
-        { id: '#008', nombre: 'Sofia Guzmán',     correo: 'sofia@legalbot.sv',    rol: 'Usuario', telefono: '2290-1234', estado: 'Activo' },
+      nuevoAbogado: {
+        nombre: '',
+        especialidad: '',
+        telefono: '',
+        whatsapp: '',
+        correo: '',
+        direccion: '',
+        disponibilidad: 'Tiempo completo',
+        verificado: 'No'
+      },
+      abogados: [
+        { id: '001', nombre: 'Lic. Rodrigo Mendoza', especialidad: 'Derecho Penal', correo: 'r.mendoza@legalbot.sv', telefono: '7123-4567', estado: 'Activo' },
+        { id: '002', nombre: 'Dra. Elena Villalobos', especialidad: 'Derecho de Familia', correo: 'e.villalobos@legalbot.sv', telefono: '7890-1234', estado: 'Pendiente' },
+        { id: '003', nombre: 'Lic. Carlos Magaña', especialidad: 'Derecho Mercantil', correo: 'c.magana@legalbot.sv', telefono: '2244-5566', estado: 'Inactivo' },
       ]
-    }
-  },
-  computed: {
-    usuariosFiltrados() {
-      return this.usuarios.filter(u => {
-        const matchBusqueda = u.nombre.toLowerCase().includes(this.busqueda.toLowerCase()) ||
-                              u.correo.toLowerCase().includes(this.busqueda.toLowerCase())
-        const matchRol = !this.filtroRol || u.rol === this.filtroRol
-        return matchBusqueda && matchRol
-      })
     }
   },
   methods: {
     abrirModal() { this.modalAbierto = true },
-    cerrarModal() {
-      this.modalAbierto = false
-      this.nuevoUsuario = { nombre: '', correo: '', telefono: '', rol: '' }
+    cerrarModal() { 
+      this.modalAbierto = false;
+      this.nuevoAbogado = { nombre: '', especialidad: '', telefono: '', whatsapp: '', correo: '', direccion: '', disponibilidad: 'Tiempo completo', verificado: 'No' };
     },
-    guardarUsuario() {
-      console.log('Guardar usuario:', this.nuevoUsuario)
-      // Aquí el backend conectará el POST
-      this.cerrarModal()
+    guardarAbogado() {
+      console.log('Guardar:', this.nuevoAbogado);
+      this.cerrarModal();
     }
   }
 }
@@ -290,7 +291,6 @@ export default {
   display: flex; min-height: 100vh;
   font-family: 'Sora', sans-serif; background: #f3f4f6;
 }
-
 
 .sidebar {
   width: 210px; min-height: 100vh; background: #0f172a;
@@ -318,8 +318,6 @@ export default {
 .nav-item.active { background: #7c6ff7; color: #fff; font-weight: 500; }
 .sidebar-logout { padding: 12px; border-top: 1px solid rgba(255,255,255,0.07); }
 .logout-item { color: rgba(255,100,100,0.7); }
-.logout-item:hover { background: rgba(255,80,80,0.1); color: rgba(255,120,120,0.9); }
-
 
 .main-content { margin-left: 210px; flex: 1; padding: 36px 32px; min-height: 100vh; }
 
@@ -338,10 +336,7 @@ export default {
 }
 .btn-nuevo:hover { background: #6358e8; }
 
-
-.filters-bar {
-  display: flex; gap: 12px; margin-bottom: 20px;
-}
+.filters-bar { display: flex; gap: 12px; margin-bottom: 20px; }
 .search-wrap {
   flex: 1; display: flex; align-items: center; gap: 10px;
   background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0 14px;
@@ -351,13 +346,11 @@ export default {
   font-family: 'Sora', sans-serif; color: #111827; padding: 11px 0;
   background: transparent;
 }
-.search-input::placeholder { color: #9ca3af; }
 .select-filter {
   padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px;
   font-size: 13px; font-family: 'Sora', sans-serif; color: #374151;
   background: #fff; outline: none; cursor: pointer;
 }
-
 
 .stats-row { display: flex; gap: 14px; margin-bottom: 20px; }
 .stat-pill {
@@ -374,7 +367,6 @@ export default {
 .stat-label { font-size: 11px; color: #6b7280; }
 .stat-val   { font-size: 22px; font-weight: 700; color: #111827; line-height: 1.2; }
 
-
 .table-card {
   background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;
 }
@@ -384,24 +376,18 @@ export default {
   padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600;
   color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;
 }
-.data-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.1s; }
-.data-table tbody tr:last-child { border-bottom: none; }
-.data-table tbody tr:hover { background: #fafafa; }
-.data-table td { padding: 14px 16px; font-size: 13px; color: #374151; }
+.data-table td { padding: 14px 16px; font-size: 13px; color: #374151; border-bottom: 1px solid #f3f4f6;}
 
 .cell-id { font-weight: 600; color: #6b7280; }
 .cell-nombre { font-weight: 500; color: #111827; }
 .cell-correo { color: #6b7280; }
 
-.badge-estado, .badge-rol {
+.badge-estado {
   display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
 }
 .badge-estado.activo   { background: #f0fdf4; color: #16a34a; }
 .badge-estado.inactivo { background: #f3f4f6; color: #6b7280; }
 .badge-estado.pendiente{ background: #fffbeb; color: #d97706; }
-.badge-rol.admin   { background: #f3f0ff; color: #7c3aed; }
-.badge-rol.usuario { background: #eff6ff; color: #2563eb; }
-.badge-rol.abogado { background: #f0fdf4; color: #16a34a; }
 
 .acciones { display: flex; gap: 6px; align-items: center; }
 .btn-accion {
@@ -411,8 +397,6 @@ export default {
 .btn-accion.ver     { background: #eff6ff; color: #2563eb; }
 .btn-accion.editar  { background: #f3f0ff; color: #7c3aed; }
 .btn-accion.eliminar{ background: #fef2f2; color: #dc2626; }
-.btn-accion:hover   { opacity: 0.8; }
-
 
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -428,10 +412,8 @@ export default {
 }
 .modal-title { font-size: 16px; font-weight: 600; color: #111827; }
 .modal-close {
-  background: none; border: none; cursor: pointer; color: #9ca3af;
-  display: flex; align-items: center; padding: 4px; border-radius: 6px;
+  background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 24px;
 }
-.modal-close:hover { background: #f3f4f6; color: #374151; }
 .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
@@ -439,10 +421,8 @@ export default {
 .form-group input, .form-group select {
   padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px;
   font-size: 13px; font-family: 'Sora', sans-serif; color: #111827; outline: none;
-  transition: border-color 0.2s;
 }
 .form-group input:focus, .form-group select:focus { border-color: #7c6ff7; }
-.form-group input::placeholder { color: #9ca3af; }
 .modal-footer {
   display: flex; justify-content: flex-end; gap: 10px;
   padding: 16px 24px; border-top: 1px solid #e5e7eb;
@@ -450,13 +430,11 @@ export default {
 .btn-cancelar {
   padding: 9px 18px; border: 1px solid #e5e7eb; border-radius: 8px;
   background: #fff; font-size: 13px; font-weight: 500; font-family: 'Sora', sans-serif;
-  color: #374151; cursor: pointer; transition: background 0.15s;
+  color: #374151; cursor: pointer;
 }
-.btn-cancelar:hover { background: #f9fafb; }
 .btn-guardar {
   padding: 9px 18px; background: #7c6ff7; border: none; border-radius: 8px;
   font-size: 13px; font-weight: 600; font-family: 'Sora', sans-serif;
-  color: #fff; cursor: pointer; transition: background 0.2s;
+  color: #fff; cursor: pointer;
 }
-.btn-guardar:hover { background: #6358e8; }
 </style>

@@ -13,3 +13,12 @@ Route::get('/dashboard', function () {
 Route::get('/usuarios', function () {
     return view('GestionUsuarios');
 });
+
+Route::get('/abogados', function () {return view('abogados'); 
+});
+
+Route::get('/registro', function () {return view('registro');
+});
+
+Route::get('/inicio', function () {return view('Dashboard'); 
+});
