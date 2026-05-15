@@ -53,19 +53,19 @@
         <h2 class="card-title">Iniciar Sesión</h2>
 
         <div class="field-group">
-          <label class="field-label">Usuario</label>
+          <label class="field-label">Email</label>
           <input
-            v-model="form.usuario"
-            type="text"
+            v-model="form.email"
+            type="email"
             class="field-input"
-            placeholder="Ingresa tu usuario"
+            placeholder="Ingresa tu email"
           />
         </div>
 
         <div class="field-group">
           <label class="field-label">Contraseña</label>
           <input
-            v-model="form.contrasena"
+            v-model="form.password"
             type="password"
             class="field-input"
             placeholder="Ingresa tu contraseña"
@@ -78,9 +78,9 @@
 
         <p class="register-text">¿No tienes cuenta? ¡Regístrate!</p>
 
-        <button class="btn-registrar">
+        <a class="btn-registrar" href="/registro">
           Regístrate aquí
-        </button>
+        </a>
       </div>
     </div>
 
@@ -96,20 +96,33 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'LoginView',
   data() {
     return {
       form: {
-        usuario: '',
-        contrasena: ''
+        email: '',
+        password: ''
       }
     }
   },
   methods: {
-    handleLogin() {
-      console.log('Login con:', this.form)
-      // Aquí el backend conectará la autenticación
+    async handleLogin() {
+      try {
+        const response = await axios.post('/login', {
+          email: this.form.email,
+          password: this.form.password,
+          _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        });
+
+        if (response.data.redirect) {
+          window.location.href = response.data.redirect;
+        }
+      } catch (error) {
+        alert('Credenciales inválidas');
+      }
     }
   }
 }

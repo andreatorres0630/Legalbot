@@ -53,32 +53,42 @@
         <h2 class="card-title">Registrate</h2>
 
         <div class="field-group">
-          <label class="field-label">Usuario</label>
+          <label class="field-label">Nombre</label>
           <input
-            v-model="form.usuario"
+            v-model="form.nombre"
             type="text"
             class="field-input"
-            placeholder="Ingresa tu usuario"
+            placeholder="Ingresa tu nombre"
+          />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Apellido</label>
+          <input
+            v-model="form.apellido"
+            type="text"
+            class="field-input"
+            placeholder="Ingresa tu apellido"
+          />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Email</label>
+          <input
+            v-model="form.email"
+            type="email"
+            class="field-input"
+            placeholder="Ingresa tu email"
           />
         </div>
 
         <div class="field-group">
           <label class="field-label">Contraseña</label>
           <input
-            v-model="form.contrasena"
+            v-model="form.password"
             type="password"
             class="field-input"
             placeholder="Ingresa tu contraseña"
-          />
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">Correo</label>
-          <input
-            v-model="form.correo"
-            type="email"
-            class="field-input"
-            placeholder="Ingresa tu correo"
           />
         </div>
 
@@ -88,9 +98,9 @@
 
         <p class="register-text">¿Ya tienes cuenta?</p>
 
-        <button class="btn-registrar">
+        <a class="btn-registrar" href="/login">
           Inicia sesión aquí
-        </button>
+        </a>
       </div>
     </div>
 
@@ -106,20 +116,38 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'RegisterView',
   data() {
     return {
       form: {
-        usuario: '',
-        contrasena: '',
-        correo: ''
+        nombre: '',
+        apellido: '',
+        email: '',
+        password: ''
       }
     }
   },
   methods: {
-    handleRegister() {
-      console.log('Registro de:', this.form)
+    async handleRegister() {
+      try {
+        const response = await axios.post('/register', {
+          nombre: this.form.nombre,
+          apellido: this.form.apellido,
+          email: this.form.email,
+          password: this.form.password,
+          _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        });
+
+        alert('Usuario registrado exitosamente');
+        window.location.href = '/login';
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || 'Error al registrar usuario';
+        alert(errorMsg);
+        console.error('Error completo:', error);
+      }
     }
   }
 }
