@@ -80,9 +80,9 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="text" class="search-input" placeholder="Buscar abogado..." />
+          <input v-model="busqueda" type="text" class="search-input" placeholder="Buscar abogado..." />
         </div>
-        <select class="select-filter">
+        <select v-model="filtroEspecialidad" class="select-filter">
           <option value="">Todas las especialidades</option>
           <option>Derecho Civil</option>
           <option>Derecho Penal</option>
@@ -103,7 +103,7 @@
           </div>
           <div>
             <p class="stat-label">Total Abogados</p>
-            <p class="stat-val">3</p>
+            <p class="stat-val">{{ abogados.length }}</p>
           </div>
         </div>
         <div class="stat-pill">
@@ -114,7 +114,7 @@
           </div>
           <div>
             <p class="stat-label">Activos</p>
-            <p class="stat-val">1</p>
+            <p class="stat-val">{{ abogados.filter(a => a.disponible).length }}</p>
           </div>
         </div>
         <div class="stat-pill">
@@ -146,7 +146,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="abogado in abogados" :key="abogado.id">
+            <tr v-for="abogado in abogadosFiltrados" :key="abogado.id">
               <td class="cell-id">#{{ abogado.id }}</td>
               <td class="cell-nombre">{{ abogado.nombre }}</td>
               <td>{{ abogado.especialidad }}</td>
@@ -157,18 +157,18 @@
               </td>
               <td>
                 <div class="acciones">
-                  <button class="btn-accion ver" title="Ver">
+                  <button class="btn-accion ver" title="Ver" @click="editarAbogado(abogado)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
                   </button>
-                  <button class="btn-accion editar" title="Editar">
+                  <button class="btn-accion editar" title="Editar" @click="editarAbogado(abogado)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
                   </button>
-                  <button class="btn-accion eliminar" title="Eliminar">
+                  <button class="btn-accion eliminar" title="Eliminar" @click="eliminarAbogado(abogado)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                       <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
@@ -185,59 +185,58 @@
       <div v-if="modalAbierto" class="modal-backdrop" @click.self="cerrarModal">
         <div class="modal">
           <div class="modal-header">
-            <h3 class="modal-title">Nuevo abogado</h3>
+            <h3 class="modal-title">{{ modoEdicion ? 'Editar abogado' : 'Nuevo abogado' }}</h3>
             <button class="modal-close" @click="cerrarModal">×</button>
           </div>
           <div class="modal-body">
             <div class="form-row">
               <div class="form-group">
                 <label>Nombre completo</label>
-                <input v-model="nuevoAbogado.nombre" type="text" placeholder="Ej. Lic. Roberto Flores" />
+                <input v-model="abogadoForm.nombre" type="text" placeholder="Ej. Lic. Roberto Flores" />
               </div>
               <div class="form-group">
                 <label>Especialidad</label>
-                <input v-model="nuevoAbogado.especialidad" type="text" placeholder="Ej. Penalista" />
+                <input v-model="abogadoForm.especialidad" type="text" placeholder="Ej. Penalista" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Teléfono</label>
-                <input v-model="nuevoAbogado.telefono" type="text" placeholder="2200-0000" />
+                <input v-model="abogadoForm.telefono" type="text" placeholder="2200-0000" />
               </div>
               <div class="form-group">
                 <label>WhatsApp</label>
-                <input v-model="nuevoAbogado.whatsapp" type="text" placeholder="7000-0000" />
+                <input v-model="abogadoForm.whatsapp" type="text" placeholder="7000-0000" />
               </div>
             </div>
             <div class="form-group">
               <label>Correo electrónico</label>
-              <input v-model="nuevoAbogado.correo" type="email" placeholder="abogado@legalbot.sv" />
+              <input v-model="abogadoForm.correo" type="email" placeholder="abogado@legalbot.sv" />
             </div>
             <div class="form-group">
               <label>Dirección</label>
-              <input v-model="nuevoAbogado.direccion" type="text" placeholder="San Miguel, El Salvador" />
+              <input v-model="abogadoForm.direccion" type="text" placeholder="San Miguel, El Salvador" />
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Disponibilidad</label>
-                <select v-model="nuevoAbogado.disponibilidad">
-                  <option>Tiempo completo</option>
-                  <option>Horas oficina</option>
-                  <option>Fines de semana</option>
+                <label>Disponible</label>
+                <select v-model="abogadoForm.disponible">
+                  <option :value="true">Sí</option>
+                  <option :value="false">No</option>
                 </select>
               </div>
               <div class="form-group">
                 <label>Verificado</label>
-                <select v-model="nuevoAbogado.verificado">
-                  <option value="No">No</option>
-                  <option value="Si">Sí</option>
+                <select v-model="abogadoForm.verificado">
+                  <option :value="false">No</option>
+                  <option :value="true">Sí</option>
                 </select>
               </div>
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn-cancelar" @click="cerrarModal">Cancelar</button>
-            <button class="btn-guardar" @click="guardarAbogado">Guardar abogado</button>
+            <button class="btn-guardar" @click="guardarAbogado">{{ modoEdicion ? 'Guardar cambios' : 'Guardar abogado' }}</button>
           </div>
         </div>
       </div>
@@ -252,33 +251,151 @@ export default {
   name: 'GestionAbogadosView',
   data() {
     return {
+      busqueda: '',
+      filtroEspecialidad: '',
       modalAbierto: false,
-      nuevoAbogado: {
+      modoEdicion: false,
+      abogadoForm: {
+        id: null,
         nombre: '',
         especialidad: '',
         telefono: '',
         whatsapp: '',
         correo: '',
         direccion: '',
-        disponibilidad: 'Tiempo completo',
-        verificado: 'No'
+        disponible: true,
+        verificado: false
       },
-      abogados: [
-        { id: '001', nombre: 'Lic. Rodrigo Mendoza', especialidad: 'Derecho Penal', correo: 'r.mendoza@legalbot.sv', telefono: '7123-4567', estado: 'Activo' },
-        { id: '002', nombre: 'Dra. Elena Villalobos', especialidad: 'Derecho de Familia', correo: 'e.villalobos@legalbot.sv', telefono: '7890-1234', estado: 'Pendiente' },
-        { id: '003', nombre: 'Lic. Carlos Magaña', especialidad: 'Derecho Mercantil', correo: 'c.magana@legalbot.sv', telefono: '2244-5566', estado: 'Inactivo' },
-      ]
+      abogados: []
     }
   },
+  computed: {
+    abogadosFiltrados() {
+      return this.abogados.filter(a => {
+        const texto = `${a.nombre} ${a.especialidad} ${a.correo}`.toLowerCase();
+        const matchBusqueda = texto.includes(this.busqueda.toLowerCase());
+        const matchEspecialidad = !this.filtroEspecialidad || a.especialidad === this.filtroEspecialidad;
+        return matchBusqueda && matchEspecialidad;
+      });
+    }
+  },
+  mounted() {
+    this.fetchAbogados();
+  },
   methods: {
-    abrirModal() { this.modalAbierto = true },
-    cerrarModal() { 
-      this.modalAbierto = false;
-      this.nuevoAbogado = { nombre: '', especialidad: '', telefono: '', whatsapp: '', correo: '', direccion: '', disponibilidad: 'Tiempo completo', verificado: 'No' };
+    mapAbogado(data) {
+      return {
+        id: data.id,
+        nombre: data.nombre,
+        especialidad: data.especialidad || '',
+        telefono: data.telefono || '',
+        whatsapp: data.whatsapp || '',
+        correo: data.email || data.correo || '',
+        direccion: data.direccion || '',
+        disponible: Boolean(data.disponible),
+        verificado: Boolean(data.verificado),
+        estado: data.estado || (data.disponible ? 'Activo' : 'Inactivo')
+      };
     },
-    guardarAbogado() {
-      console.log('Guardar:', this.nuevoAbogado);
-      this.cerrarModal();
+    async fetchAbogados() {
+      try {
+        const response = await axios.get('/abogados/list');
+        this.abogados = response.data.map(this.mapAbogado);
+      } catch (error) {
+        console.error('Error cargando abogados:', error);
+      }
+    },
+    abrirModal(abogado = null) {
+      if (abogado) {
+        this.modoEdicion = true;
+        this.abogadoForm = {
+          id: abogado.id,
+          nombre: abogado.nombre,
+          especialidad: abogado.especialidad,
+          telefono: abogado.telefono,
+          whatsapp: abogado.whatsapp,
+          correo: abogado.correo,
+          direccion: abogado.direccion,
+          disponible: abogado.disponible,
+          verificado: abogado.verificado
+        };
+      } else {
+        this.modoEdicion = false;
+        this.abogadoForm = {
+          id: null,
+          nombre: '',
+          especialidad: '',
+          telefono: '',
+          whatsapp: '',
+          correo: '',
+          direccion: '',
+          disponible: true,
+          verificado: false
+        };
+      }
+      this.modalAbierto = true;
+    },
+    cerrarModal() {
+      this.modalAbierto = false;
+      this.modoEdicion = false;
+      this.abogadoForm = {
+        id: null,
+        nombre: '',
+        especialidad: '',
+        telefono: '',
+        whatsapp: '',
+        correo: '',
+        direccion: '',
+        disponible: true,
+        verificado: false
+      };
+    },
+    async guardarAbogado() {
+      try {
+        const payload = {
+          nombre: this.abogadoForm.nombre,
+          especialidad: this.abogadoForm.especialidad,
+          telefono: this.abogadoForm.telefono,
+          whatsapp: this.abogadoForm.whatsapp,
+          correo: this.abogadoForm.correo,
+          direccion: this.abogadoForm.direccion,
+          disponible: this.abogadoForm.disponible ? 1 : 0,
+          verificado: this.abogadoForm.verificado ? 1 : 0,
+        };
+
+        let response;
+        if (this.modoEdicion && this.abogadoForm.id) {
+          response = await axios.put(`/abogados/${this.abogadoForm.id}`, payload);
+          const index = this.abogados.findIndex(a => a.id === this.abogadoForm.id);
+          if (index !== -1) {
+            this.$set(this.abogados, index, this.mapAbogado(response.data));
+          }
+        } else {
+          response = await axios.post('/abogados', payload);
+          this.abogados.unshift(this.mapAbogado(response.data));
+        }
+
+        this.cerrarModal();
+      } catch (error) {
+        console.error('Error guardando abogado:', error);
+        alert(error.response?.data?.message || 'No se pudo guardar el abogado.');
+      }
+    },
+    editarAbogado(abogado) {
+      this.abrirModal(abogado);
+    },
+    async eliminarAbogado(abogado) {
+      if (!confirm(`¿Eliminar al abogado ${abogado.nombre}?`)) {
+        return;
+      }
+
+      try {
+        await axios.delete(`/abogados/${abogado.id}`);
+        this.abogados = this.abogados.filter(a => a.id !== abogado.id);
+      } catch (error) {
+        console.error('Error eliminando abogado:', error);
+        alert('No se pudo eliminar el abogado.');
+      }
     },
     async handleLogout() {
       try {

@@ -89,9 +89,10 @@
         </div>
         <select v-model="filtroRol" class="select-filter">
           <option value="">Todos los roles</option>
-          <option value="Admin">Admin</option>
-          <option value="Usuario">Usuario</option>
-          <option value="Abogado">Abogado</option>
+          <option value="admin">Admin</option>
+          <option value="ciudadano">Usuario</option>
+          <option value="empleador">Empleador</option>
+          <option value="ong">ONG</option>
         </select>
       </div>
 
@@ -151,10 +152,10 @@
           <tbody>
             <tr v-for="usuario in usuariosFiltrados" :key="usuario.id">
               <td class="cell-id">{{ usuario.id }}</td>
-              <td class="cell-nombre">{{ usuario.nombre }}</td>
+              <td class="cell-nombre">{{ usuario.nombre }} {{ usuario.apellido }}</td>
               <td class="cell-correo">{{ usuario.correo }}</td>
               <td>
-                <span :class="['badge-rol', usuario.rol.toLowerCase()]">{{ usuario.rol }}</span>
+                <span :class="['badge-rol', usuario.rol.toLowerCase()]">{{ formatRole(usuario.rol) }}</span>
               </td>
               <td>{{ usuario.telefono }}</td>
               <td>
@@ -162,18 +163,18 @@
               </td>
               <td>
                 <div class="acciones">
-                  <button class="btn-accion ver" title="Ver">
+                  <button class="btn-accion ver" title="Ver" @click="editarUsuario(usuario)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
                   </button>
-                  <button class="btn-accion editar" title="Editar">
+                  <button class="btn-accion editar" title="Editar" @click="editarUsuario(usuario)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
                   </button>
-                  <button class="btn-accion eliminar" title="Eliminar">
+                  <button class="btn-accion eliminar" title="Eliminar" @click="eliminarUsuario(usuario)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                       <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
@@ -190,7 +191,7 @@
       <div v-if="modalAbierto" class="modal-backdrop" @click.self="cerrarModal">
         <div class="modal">
           <div class="modal-header">
-            <h3 class="modal-title">Nuevo usuario</h3>
+            <h3 class="modal-title">{{ modoEdicion ? 'Editar usuario' : 'Nuevo usuario' }}</h3>
             <button class="modal-close" @click="cerrarModal">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -200,33 +201,52 @@
           <div class="modal-body">
             <div class="form-row">
               <div class="form-group">
-                <label>Nombre completo</label>
-                <input v-model="nuevoUsuario.nombre" type="text" placeholder="Ej. Juan Pérez" />
+                <label>Nombre</label>
+                <input v-model="usuarioForm.nombre" type="text" placeholder="Ej. Juan" />
               </div>
               <div class="form-group">
-                <label>Correo electrónico</label>
-                <input v-model="nuevoUsuario.correo" type="email" placeholder="correo@ejemplo.com" />
+                <label>Apellido</label>
+                <input v-model="usuarioForm.apellido" type="text" placeholder="Ej. Pérez" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Teléfono</label>
-                <input v-model="nuevoUsuario.telefono" type="text" placeholder="2234-5678" />
+                <label>Correo electrónico</label>
+                <input v-model="usuarioForm.correo" type="email" placeholder="correo@ejemplo.com" />
               </div>
               <div class="form-group">
+                <label>Teléfono</label>
+                <input v-model="usuarioForm.telefono" type="text" placeholder="2234-5678" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
                 <label>Rol</label>
-                <select v-model="nuevoUsuario.rol">
+                <select v-model="usuarioForm.rol">
                   <option value="">Seleccionar rol</option>
-                  <option>Admin</option>
-                  <option>Usuario</option>
-                  <option>Abogado</option>
+                  <option value="admin">Admin</option>
+                  <option value="ciudadano">Usuario</option>
+                  <option value="empleador">Empleador</option>
+                  <option value="ong">ONG</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label>Estado</label>
+                <select v-model="usuarioForm.estado">
+                  <option value="Activo">Activo</option>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="Inactivo">Inactivo</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Contraseña (solo al crear o cambiar)</label>
+              <input v-model="usuarioForm.password" type="password" placeholder="Dejar en blanco para mantener la actual" />
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn-cancelar" @click="cerrarModal">Cancelar</button>
-            <button class="btn-guardar" @click="guardarUsuario">Guardar usuario</button>
+            <button class="btn-guardar" @click="guardarUsuario">{{ modoEdicion ? 'Guardar cambios' : 'Guardar usuario' }}</button>
           </div>
         </div>
       </div>
@@ -245,39 +265,156 @@ export default {
       busqueda: '',
       filtroRol: '',
       modalAbierto: false,
-      nuevoUsuario: { nombre: '', correo: '', telefono: '', rol: '' },
-      usuarios: [
-        { id: '#001', nombre: 'Admin Sistema',    correo: 'admin@legalbot.sv',    rol: 'Admin',   telefono: '2200-0001', estado: 'Activo' },
-        { id: '#002', nombre: 'María López',      correo: 'maria@legalbot.sv',    rol: 'Usuario', telefono: '2234-5678', estado: 'Activo' },
-        { id: '#003', nombre: 'Carlos Rivas',     correo: 'carlos@legalbot.sv',   rol: 'Usuario', telefono: '2245-6789', estado: 'Pendiente' },
-        { id: '#004', nombre: 'Ana Martínez',     correo: 'ana@legalbot.sv',      rol: 'Abogado', telefono: '2256-7890', estado: 'Activo' },
-        { id: '#005', nombre: 'José Hernández',   correo: 'jose@legalbot.sv',     rol: 'Usuario', telefono: '2267-8901', estado: 'Inactivo' },
-        { id: '#006', nombre: 'Laura Castillo',   correo: 'laura@legalbot.sv',    rol: 'Usuario', telefono: '2278-9012', estado: 'Activo' },
-        { id: '#007', nombre: 'Pedro Morales',    correo: 'pedro@legalbot.sv',    rol: 'Abogado', telefono: '2289-0123', estado: 'Pendiente' },
-        { id: '#008', nombre: 'Sofia Guzmán',     correo: 'sofia@legalbot.sv',    rol: 'Usuario', telefono: '2290-1234', estado: 'Activo' },
-      ]
+      modoEdicion: false,
+      cargando: false,
+      usuarioForm: {
+        id: null,
+        nombre: '',
+        apellido: '',
+        correo: '',
+        telefono: '',
+        rol: '',
+        estado: 'Activo',
+        password: ''
+      },
+      usuarios: []
     }
   },
   computed: {
     usuariosFiltrados() {
       return this.usuarios.filter(u => {
-        const matchBusqueda = u.nombre.toLowerCase().includes(this.busqueda.toLowerCase()) ||
-                              u.correo.toLowerCase().includes(this.busqueda.toLowerCase())
-        const matchRol = !this.filtroRol || u.rol === this.filtroRol
-        return matchBusqueda && matchRol
+        const texto = `${u.nombre} ${u.apellido} ${u.correo}`.toLowerCase();
+        const matchBusqueda = texto.includes(this.busqueda.toLowerCase());
+        const matchRol = !this.filtroRol || u.rol === this.filtroRol;
+        return matchBusqueda && matchRol;
       })
     }
   },
+  mounted() {
+    this.fetchUsuarios();
+  },
   methods: {
-    abrirModal() { this.modalAbierto = true },
-    cerrarModal() {
-      this.modalAbierto = false
-      this.nuevoUsuario = { nombre: '', correo: '', telefono: '', rol: '' }
+    mapUsuario(data) {
+      return {
+        id: data.id,
+        nombre: data.nombre ?? '',
+        apellido: data.apellido ?? '',
+        correo: data.email ?? '',
+        telefono: data.telefono ?? '',
+        rol: data.rol ?? '',
+        estado: data.estado ?? 'Activo'
+      };
     },
-    guardarUsuario() {
-      console.log('Guardar usuario:', this.nuevoUsuario)
-      // Aquí el backend conectará el POST
-      this.cerrarModal()
+    formatRole(role) {
+      const labels = {
+        admin: 'Admin',
+        ciudadano: 'Usuario',
+        empleador: 'Empleador',
+        ong: 'ONG'
+      };
+      return labels[role] || role || 'Sin rol';
+    },
+    async fetchUsuarios() {
+      this.cargando = true;
+      try {
+        const response = await axios.get('/usuarios/list');
+        this.usuarios = response.data.map(this.mapUsuario);
+      } catch (error) {
+        console.error('Error cargando usuarios:', error);
+      } finally {
+        this.cargando = false;
+      }
+    },
+    abrirModal(usuario = null) {
+      if (usuario) {
+        this.modoEdicion = true;
+        this.usuarioForm = {
+          id: usuario.id,
+          nombre: usuario.nombre,
+          apellido: usuario.apellido,
+          correo: usuario.correo,
+          telefono: usuario.telefono,
+          rol: usuario.rol,
+          estado: usuario.estado || 'Activo',
+          password: ''
+        };
+      } else {
+        this.modoEdicion = false;
+        this.usuarioForm = {
+          id: null,
+          nombre: '',
+          apellido: '',
+          correo: '',
+          telefono: '',
+          rol: '',
+          estado: 'Activo',
+          password: ''
+        };
+      }
+      this.modalAbierto = true;
+    },
+    cerrarModal() {
+      this.modalAbierto = false;
+      this.modoEdicion = false;
+      this.usuarioForm = {
+        id: null,
+        nombre: '',
+        apellido: '',
+        correo: '',
+        telefono: '',
+        rol: '',
+        estado: 'Activo',
+        password: ''
+      };
+    },
+    async guardarUsuario() {
+      try {
+        const payload = {
+          nombre: this.usuarioForm.nombre,
+          apellido: this.usuarioForm.apellido,
+          email: this.usuarioForm.correo,
+          telefono: this.usuarioForm.telefono,
+          rol: this.usuarioForm.rol,
+          estado: this.usuarioForm.estado,
+        };
+
+        if (this.usuarioForm.password) {
+          payload.password = this.usuarioForm.password;
+        }
+
+        let response;
+        if (this.modoEdicion && this.usuarioForm.id) {
+          response = await axios.put(`/usuarios/${this.usuarioForm.id}`, payload);
+          const index = this.usuarios.findIndex(u => u.id === this.usuarioForm.id);
+          if (index !== -1) {
+            this.usuarios.splice(index, 1, this.mapUsuario(response.data));
+          }
+        } else {
+          response = await axios.post('/usuarios', payload);
+          this.usuarios.unshift(this.mapUsuario(response.data));
+        }
+
+        this.cerrarModal();
+      } catch (error) {
+        console.error('Error guardando usuario:', error);
+        alert(error.response?.data?.message || 'No se pudo guardar el usuario.');
+      }
+    },
+    editarUsuario(usuario) {
+      this.abrirModal(usuario);
+    },
+    async eliminarUsuario(usuario) {
+      if (!confirm(`¿Eliminar al usuario ${usuario.nombre} ${usuario.apellido}?`)) {
+        return;
+      }
+
+      try {
+        await axios.delete(`/usuarios/${usuario.id}`);
+        this.usuarios = this.usuarios.filter(u => u.id !== usuario.id);
+      } catch (error) {
+        console.error('Error eliminando usuario:', error);
+        alert('No se pudo eliminar el usuario.');
+      }
     },
     async handleLogout() {
       try {
@@ -412,9 +549,10 @@ export default {
 .badge-estado.activo   { background: #f0fdf4; color: #16a34a; }
 .badge-estado.inactivo { background: #f3f4f6; color: #6b7280; }
 .badge-estado.pendiente{ background: #fffbeb; color: #d97706; }
-.badge-rol.admin   { background: #f3f0ff; color: #7c3aed; }
-.badge-rol.usuario { background: #eff6ff; color: #2563eb; }
-.badge-rol.abogado { background: #f0fdf4; color: #16a34a; }
+.badge-rol.admin      { background: #f3f0ff; color: #7c3aed; }
+.badge-rol.ciudadano { background: #eff6ff; color: #2563eb; }
+.badge-rol.empleador { background: #fef3c7; color: #b45309; }
+.badge-rol.ong       { background: #ecfdf5; color: #047857; }
 
 .acciones { display: flex; gap: 6px; align-items: center; }
 .btn-accion {
