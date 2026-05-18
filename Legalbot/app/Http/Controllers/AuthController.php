@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\Abogado;
 
 class AuthController extends Controller
 {
@@ -62,5 +63,57 @@ class AuthController extends Controller
 
         return response()->json(['redirect' => '/login']);
     }
-  
+
+    public function me(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+        return response()->json([
+            'id' => $user->id,
+            'nombre' => $user->nombre,
+            'apellido' => $user->apellido,
+            'email' => $user->email,
+            'rol' => $user->rol,
+        ]);
+    }
+
+    public function actividadReciente(Request $request)
+    {
+        $usuarios = User::select(['nombre', 'apellido', 'email'])
+            ->orderByDesc('id')
+            ->limit(3)
+            ->get();
+
+        $abogados = Abogado::select(['nombre', 'verificado'])
+            ->orderByDesc('id')
+            ->limit(2)
+            ->get();
+
+        $actividades = [];
+
+        foreach ($usuarios as $usuario) {
+            $actividades[] = [
+                'id' => 'u_'.$usuario->email,
+                'texto' => "Usuario {$usuario->nombre} {$usuario->apellido} se registró",
+                'tiempo' => 'Reciente',
+                'tipo' => 'blue',
+            ];
+        }
+
+        foreach ($abogados as $index => $abogado) {
+            $status = $abogado->verificado ? 'verificado' : 'pendiente de verificación';
+            $actividades[] = [
+                'id' => 'a_'.$index,
+                'texto' => "Abogado {$abogado->nombre} {$status}",
+                'tiempo' => 'Reciente',
+                'tipo' => 'green',
+            ];
+        }
+
+        return response()->json(array_values($actividades));
+    }
 }

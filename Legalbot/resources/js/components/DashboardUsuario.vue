@@ -53,7 +53,7 @@
     <div class="main-wrapper">
       <header class="top-header">
         <div class="header-welcome">
-          <h2 class="welcome-title">¡Hola! Nelson.</h2>
+          <h2 class="welcome-title">¡Hola! {{ currentUser.nombre }}.</h2>
           <p class="welcome-subtitle">¿En qué podemos ayudarte hoy?</p>
         </div>
         <div class="header-user">
@@ -61,8 +61,8 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </button>
           <div class="user-profile">
-            <div class="user-avatar">N</div>
-            <span class="user-name">Nelson Mejia</span>
+            <div class="user-avatar">{{ currentUser.nombre.charAt(0) || 'U' }}</div>
+            <span class="user-name">{{ currentUser.nombre }} {{ currentUser.apellido }}</span>
           </div>
         </div>
       </header>
@@ -147,7 +147,26 @@ import axios from 'axios';
 
 export default {
   name: 'DashboardUsuario',
+  data() {
+    return {
+      currentUser: {
+        nombre: 'Nelson',
+        apellido: 'Mejia',
+      },
+    }
+  },
+  async mounted() {
+    await this.fetchCurrentUser()
+  },
   methods: {
+    async fetchCurrentUser() {
+      try {
+        const response = await axios.get('/auth/me')
+        this.currentUser = response.data
+      } catch (error) {
+        console.error('Error cargando usuario actual:', error)
+      }
+    },
     async handleLogout() {
       try {
         await axios.post('/logout', {

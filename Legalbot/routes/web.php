@@ -7,11 +7,11 @@ use App\Http\Controllers\AbogadoController;
 
 Route::get('/', function () {
     return view('login');
-})->middleware('guest');
+});
 
 Route::get('/login', function () {
     return view('login');
-})->middleware('guest');
+})->middleware('guest')->name('login');
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -49,6 +49,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/abogados', [AbogadoController::class, 'store']);
     Route::put('/abogados/{abogado}', [AbogadoController::class, 'update']);
     Route::delete('/abogados/{abogado}', [AbogadoController::class, 'destroy']);
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::get('/actividad-reciente', [AuthController::class, 'actividadReciente']);
 });
 
 // routes/api.php

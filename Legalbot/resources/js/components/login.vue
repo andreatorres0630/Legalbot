@@ -348,10 +348,12 @@ export default {
   font-family: 'Sora', sans-serif;
   cursor: pointer;
   transition: background 0.2s;
+  text-align: center;
 }
 
-.btn-registrar:hover {
+.btn-registrar:hover { 
   background: #7c6ff7;
+  text-align: center;
 }
 
 .right-deco {

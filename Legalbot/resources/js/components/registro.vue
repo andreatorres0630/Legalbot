@@ -259,6 +259,7 @@ export default {
   width: 100%; padding: 13px; background: #8b7ff8; color: #fff;
   border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
   font-family: 'Sora', sans-serif; cursor: pointer; transition: background 0.2s;
+  text-align: center;
 }
 
 .right-deco { position: absolute; right: 60px; bottom: 60px; opacity: 0.4; pointer-events: none; }

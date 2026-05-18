@@ -16,34 +16,34 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a href="/dashboard" class="nav-item active">
+        <a href="#" class="nav-item active" @click.prevent="navigateTo('/dashboard')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
             <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
           </svg>
           Dashboard
         </a>
-        <a href="/usuarios" class="nav-item">
+        <a href="#" class="nav-item" @click.prevent="navigateTo('/usuarios')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
           </svg>
           Gestión de Usuarios
         </a>
-        <a href="/abogados" class="nav-item">
+        <a href="#" class="nav-item" @click.prevent="navigateTo('/abogados')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
             <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
           </svg>
           Gestión de Abogados
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" class="nav-item" @click.prevent="handleFeaturePaused('Gestión de Consultas')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
           </svg>
           Gestión de Consultas
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" class="nav-item" @click.prevent="handleFeaturePaused('Gestión de Expedientes')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
           </svg>
@@ -79,7 +79,7 @@
           </div>
           <div class="stat-info">
             <p class="stat-label">Total Usuarios</p>
-            <p class="stat-value">142</p>
+            <p class="stat-value">{{ totalUsuarios }}</p>
           </div>
           <div class="stat-change positive">+12%</div>
         </div>
@@ -91,7 +91,7 @@
           </div>
           <div class="stat-info">
             <p class="stat-label">Total Abogados</p>
-            <p class="stat-value">8</p>
+            <p class="stat-value">{{ totalAbogados }}</p>
           </div>
           <div class="stat-change positive">+2</div>
         </div>
@@ -103,7 +103,7 @@
           </div>
           <div class="stat-info">
             <p class="stat-label">Consultas activas</p>
-            <p class="stat-value">37</p>
+            <p class="stat-value">{{ consultasAbogado }}</p>
           </div>
           <div class="stat-change positive">+5%</div>
         </div>
@@ -115,7 +115,7 @@
           </div>
           <div class="stat-info">
             <p class="stat-label">Expedientes</p>
-            <p class="stat-value">24</p>
+            <p class="stat-value">{{ expedientes }}</p>
           </div>
           <div class="stat-change neutral">0%</div>
         </div>
@@ -128,7 +128,7 @@
             <h3 class="card-title">Actividad reciente</h3>
           </div>
           <div class="activity-list">
-            <div class="activity-item" v-for="item in actividad" :key="item.id">
+            <div class="activity-item" v-for="item in actividadReciente" :key="item.id">
               <div :class="['activity-dot', item.tipo]"></div>
               <div class="activity-info">
                 <p class="activity-text">{{ item.texto }}</p>
@@ -143,7 +143,7 @@
             <h3 class="card-title">Accesos rápidos</h3>
           </div>
           <div class="quick-links">
-            <a href="#" class="quick-link">
+            <a href="#" class="quick-link" @click.prevent="navigateTo('/usuarios')">
               <div class="quick-icon icon-blue">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
@@ -151,11 +151,11 @@
                 </svg>
               </div>
               <div>
-                <p class="quick-label">Nuevo usuario</p>
-                <p class="quick-sub">Agregar al sistema</p>
+                <p class="quick-label">Gestionar Usuarios</p>
+                <p class="quick-sub">Abrir sección de usuarios</p>
               </div>
             </a>
-            <a href="#" class="quick-link">
+            <a href="#" class="quick-link" @click.prevent="navigateTo('/abogados')">
               <div class="quick-icon icon-purple">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
@@ -163,11 +163,11 @@
                 </svg>
               </div>
               <div>
-                <p class="quick-label">Nuevo abogado</p>
-                <p class="quick-sub">Registrar en directorio</p>
+                <p class="quick-label">Catálogo Abogados</p>
+                <p class="quick-sub">Ver registro de abogados</p>
               </div>
             </a>
-            <a href="#" class="quick-link">
+            <a href="#" class="quick-link" @click.prevent="handleFeaturePaused('Crear expediente')">
               <div class="quick-icon icon-green">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
@@ -175,8 +175,20 @@
                 </svg>
               </div>
               <div>
-                <p class="quick-label">Nuevo expediente</p>
-                <p class="quick-sub">Crear expediente legal</p>
+                <p class="quick-label">Crear Expediente</p>
+                <p class="quick-sub">Funcionalidad en pausa</p>
+              </div>
+            </a>
+            <a href="#" class="quick-link" @click.prevent="handleFeaturePaused('Ver consultas')">
+              <div class="quick-icon icon-amber">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                  <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
+                </svg>
+              </div>
+              <div>
+                <p class="quick-label">Ver Consultas</p>
+                <p class="quick-sub">Funcionalidad en pausa</p>
               </div>
             </a>
           </div>
@@ -187,36 +199,78 @@
   </div>
 </template>
 
-<script>
-import axios from 'axios';
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
-export default {
-  name: 'DashboardView',
-  data() {
-    return {
-      actividad: [
-        { id: 1, texto: 'Usuario Juan Pérez se registró', tiempo: 'Hace 5 minutos', tipo: 'blue' },
-        { id: 2, texto: 'Abogado Dr. Carlos Mendoza validado', tiempo: 'Hace 20 minutos', tipo: 'green' },
-        { id: 3, texto: 'Nueva consulta de María López', tiempo: 'Hace 1 hora', tipo: 'purple' },
-        { id: 4, texto: 'Expediente #024 creado', tiempo: 'Hace 2 horas', tipo: 'amber' },
-        { id: 5, texto: 'Lic. Roberto Martínez pendiente de validación', tiempo: 'Hace 3 horas', tipo: 'red' },
-      ]
-    }
-  },
-  methods: {
-    async handleLogout() {
-      try {
-        await axios.post('/logout', {
-          _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        });
-        window.location.href = '/login';
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-        window.location.href = '/login';
-      }
-    }
+const totalUsuarios = ref(0)
+const totalAbogados = ref(0)
+const consultasAbogado = ref(0) // módulo en pausa, sin funcionalidad activa aún
+const expedientes = ref(0) // módulo en pausa, sin funcionalidad activa aún
+
+const actividadReciente = ref([])
+
+const fetchActividadReciente = async () => {
+  try {
+    const response = await axios.get('/actividad-reciente')
+    actividadReciente.value = response.data
+  } catch (error) {
+    console.error('Error cargando actividad reciente:', error)
+    actividadReciente.value = [
+      { id: 1, texto: 'No se pudo cargar la actividad reciente', tiempo: 'Ahora', tipo: 'red' },
+    ]
   }
 }
+
+const mapCount = (responseData) => {
+  if (Array.isArray(responseData)) {
+    return responseData.length
+  }
+
+  const value = responseData?.count ?? responseData?.total ?? responseData
+  return Number(value ?? 0)
+}
+
+const fetchDashboardData = async () => {
+  try {
+    const usuariosResponse = await axios.get('/usuarios/list')
+    totalUsuarios.value = mapCount(usuariosResponse.data)
+  } catch (error) {
+    console.error('Error cargando usuarios:', error)
+  }
+
+  try {
+    const abogadosResponse = await axios.get('/abogados/list')
+    totalAbogados.value = mapCount(abogadosResponse.data)
+  } catch (error) {
+    console.error('Error cargando abogados:', error)
+  }
+}
+
+const navigateTo = (path) => {
+  window.location.href = path
+}
+
+const handleFeaturePaused = (feature) => {
+  window.alert(`La funcionalidad \"${feature}\" está en pausa por el avance actual.`)
+}
+
+const handleLogout = async () => {
+  try {
+    await axios.post('/logout', {
+      _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+    })
+    window.location.href = '/login'
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error)
+    window.location.href = '/login'
+  }
+}
+
+onMounted(async () => {
+  await fetchDashboardData()
+  await fetchActividadReciente()
+})
 </script>
 
 <style scoped>
