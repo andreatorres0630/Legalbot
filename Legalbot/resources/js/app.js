@@ -4,6 +4,7 @@ import DashboardUsuario from './components/DashboardUsuario.vue';
 import AdminAbogado from './components/AdminAbogado.vue';
 import DashboardAdmin from './components/DashboardAdmin.vue';
 import GestionUsuarios from './components/GestionUsuarios.vue';
+import ChatLegal from './components/ChatLegal.vue';
 import login from './components/login.vue';
 import registro from './components/registro.vue';
 
@@ -15,5 +16,6 @@ app.component('abogados-component',AdminAbogado)
 app.component('dashboard-admin',DashboardAdmin)
 app.component('dashboard-usuario',DashboardUsuario)
 app.component('gestion-usuarios', GestionUsuarios)
+app.component('chat-legal',ChatLegal)
 
 app.mount('#app')

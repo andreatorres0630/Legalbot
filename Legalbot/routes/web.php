@@ -53,4 +53,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/actividad-reciente', [AuthController::class, 'actividadReciente']);
 });
 
+Route::get('/chatLegal', function () {
+    return view('ChatLegal'); 
+});
+
 // routes/api.php
