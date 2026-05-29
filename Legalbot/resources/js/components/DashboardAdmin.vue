@@ -256,6 +256,12 @@ const handleFeaturePaused = (feature) => {
 }
 
 const handleLogout = async () => {
+  const confirmed = confirm('¿Estás seguro que quieres cerrar sesión?')
+  
+  if (!confirmed) {
+    return
+  }
+
   try {
     await axios.post('/logout', {
       _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

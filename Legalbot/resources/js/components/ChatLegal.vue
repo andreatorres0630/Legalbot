@@ -14,7 +14,7 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a href="#" class="nav-item">
+        <a href="#" @click.prevent="navigateToInicio" class="nav-item">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </span> Inicio
@@ -318,9 +318,8 @@
 <script>
 import axios from 'axios';
 
-
 export default {
-  name: 'DashboardUsuario',
+  name: 'ChatLegal',
   data() {
     return {
       currentUser: {
@@ -341,7 +340,16 @@ export default {
         console.error('Error cargando usuario actual:', error)
       }
     },
+    navigateToInicio() {
+      window.location.href = '/inicio'
+    },
     async handleLogout() {
+      const confirmed = confirm('¿Estás seguro que quieres cerrar sesión?')
+      
+      if (!confirmed) {
+        return
+      }
+
       try {
         await axios.post('/logout', {
           _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')

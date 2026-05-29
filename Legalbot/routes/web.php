@@ -11,7 +11,7 @@ Route::get('/', function () {
 
 Route::get('/login', function () {
     return view('login');
-})->middleware('guest')->name('login');
+})->name('login');
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -54,7 +54,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/chatLegal', function () {
-    return view('ChatLegal'); 
-});
+    return view('ChatLegal');
+})->middleware('auth');
 
 // routes/api.php
