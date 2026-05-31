@@ -69,45 +69,85 @@
 
       <div class="content-row">
         <main class="chat-area">
-          <div class="chat-messages-scroll">
-            
-            <div class="flex-message user">
-              <div class="message-bubble bg-dark">
-                Tuve un choque en San Salvador, fue leve, ¿qué debo hacer?
-              </div>
-              <div class="chat-avatar-circle mini-purple">A</div>
+          <div class="chat-messages-scroll" ref="chatScroll">
+            <div v-for="(mensaje, index) in historialMensajes" :key="`msg-${index}-${mensaje.enviado_en}`" :class="['flex-message', mensaje.remitente === 'Usuario' ? 'user' : 'ai']">
+              <template v-if="mensaje.remitente === 'Usuario'">
+                <div class="message-bubble bg-dark">{{ mensaje.contenido }}</div>
+                <div class="chat-avatar-circle mini-purple">{{ currentUser.nombre.charAt(0) || 'U' }}</div>
+              </template>
+
+              <template v-else>
+                <div class="ai-icon-wrapper">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="10" rx="2"/>
+                    <circle cx="12" cy="5" r="2"/>
+                    <path d="M12 7v4"/>
+                  </svg>
+                </div>
+                <div class="message-bubble bg-white border shadow-sm">
+                  <p class="bubble-brand-name">LegalBot AI</p>
+                  <p class="bubble-text">{{ mensaje.contenido }}</p>
+
+                  <div v-if="mensaje.requiereAbogado" class="contact-lawyers-card">
+                    <div class="contact-lawyers-header">
+                      <div>
+                        <p class="contact-lawyers-badge">Caso penal crítico</p>
+                        <h4>Contactar abogados especialistas</h4>
+                      </div>
+                      <span class="contact-lawyers-type">{{ mensaje.especialidadRequerida || 'Derecho Penal' }}</span>
+                    </div>
+
+                    <button class="btn-ver-abogados" @click="mensaje.showAbogados = !mensaje.showAbogados">
+                      {{ mensaje.showAbogados ? 'Ocultar abogados especializados' : 'Ver abogados especializados' }}
+                    </button>
+
+                    <div v-if="mensaje.showAbogados" class="contact-lawyers-list">
+                      <div v-if="mensaje.listaAbogados && mensaje.listaAbogados.length > 0">
+                        <div v-for="(abogado, idx) in mensaje.listaAbogados" :key="`abogado-${idx}-${abogado.telefono}`" class="contact-lawyer-item">
+                          <img :src="getAbogadoImageUrl(abogado.imagen)" alt="Foto de abogado" class="contact-lawyer-avatar" />
+                          <div class="contact-lawyer-info">
+                            <p class="contact-lawyer-name">{{ abogado.nombre }}</p>
+                            <p class="contact-lawyer-specialty">{{ abogado.especialidad }}</p>
+                            <a :href="'tel:' + abogado.telefono" class="contact-lawyer-phone">📞 {{ abogado.telefono }}</a>
+                          </div>
+                          <a :href="'tel:' + abogado.telefono" class="btn-contact-lawyer">Llamar</a>
+                        </div>
+                      </div>
+                      <div v-else class="contact-lawyers-empty">
+                        <p>No se encontraron abogados disponibles en este momento.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <template v-if="mensaje.inicial">
+                    <ol class="legal-steps-list">
+                      <li><span class="step-num">1</span> Verifica que todos estén bien.</li>
+                      <li><span class="step-num">2</span> Mueve los vehículos si es seguro hacerlo.</li>
+                      <li><span class="step-num">3</span> Toma fotografías del área afectada.</li>
+                      <li><span class="step-num">4</span> Intenta llegar a un acuerdo amistoso con el otro conductor.</li>
+                      <li><span class="step-num">5</span> Reporta a la PNC si no hay acuerdo o hay lesionados.</li>
+                    </ol>
+
+                    <div class="warning-alert">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      <p><span>Aviso:</span> Este caso podría requerir asesoría legal profesional.</p>
+                    </div>
+
+                    <button class="btn-ver-abogados" @click="toggleLawyers">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      {{ showLawyers ? 'Ocultar abogados' : 'Ver abogados especializados' }}
+                    </button>
+                  </template>
+                </div>
+              </template>
             </div>
 
-            <div class="flex-message ai">
-              <div class="ai-icon-wrapper">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="10" rx="2"/>
-                  <circle cx="12" cy="5" r="2"/>
-                  <path d="M12 7v4"/>
-                </svg>
-              </div>
-              <div class="message-bubble bg-white border shadow-sm">
-                <p class="bubble-brand-name">LegalBot AI</p>
-                <p class="bubble-text">En caso de un choque leve con solo daños materiales en El Salvador, te recomiendo seguir estos pasos:</p>
-                
-                <ol class="legal-steps-list">
-                  <li><span class="step-num">1</span> Verifica que todos estén bien.</li>
-                  <li><span class="step-num">2</span> Mueve los vehículos si es seguro hacerlo.</li>
-                  <li><span class="step-num">3</span> Toma fotografías del área afectada.</li>
-                  <li><span class="step-num">4</span> Intenta llegar a un acuerdo amistoso con el otro conductor.</li>
-                  <li><span class="step-num">5</span> Reporta a la PNC si no hay acuerdo o hay lesionados.</li>
-                </ol>
+            <div v-if="cargando" class="typing-indicator">
+              <span class="bubble-text">Escribiendo...</span>
+            </div>
 
-                <div class="warning-alert">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                  <p><span>Aviso:</span> Este caso podría requerir asesoría legal profesional.</p>
-                </div>
-
-                <button class="btn-ver-abogados" @click="showLawyers = !showLawyers">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  Ver abogados especializados
-                </button>
-              </div>
+            <div v-if="historialMensajes.length === 0" class="empty-chat-placeholder">
+              <p class="bubble-text">Escribe tu consulta legal para empezar.</p>
             </div>
 
             <div v-if="showLawyers" class="recommended-lawyers-wrapper">
@@ -119,26 +159,34 @@
               </div>
 
               <div class="lawyers-stack">
-                <div v-for="abogado in lawyers" :key="abogado.id" class="lawyer-card-horizontal">
-                  <div class="lawyer-avatar-container" :style="{ background: lawyer.color }">
-                    {{ lawyer.avatar }}
-                  </div>
-                  <div class="lawyer-info-flex">
-                    <div class="lawyer-header-meta">
-                      <h4>{{ abogado.nombre }}</h4>
-                      <span :class="['badge-status-pill', lawyer.status]">
-                        {{ abogado.estado === 'available' ? '● Disponible ahora' : '● En consulta' }}
-                      </span>
+                <div v-if="lawyersLoading" class="lawyers-loading-state">
+                  <p>Cargando abogados desde la base de datos...</p>
+                </div>
+                <div v-else-if="lawyers.length === 0" class="lawyers-loading-state">
+                  <p>No se encontraron abogados disponibles en este momento.</p>
+                </div>
+                <div v-else>
+                  <div v-for="abogado in lawyers" :key="abogado.id" class="lawyer-card-horizontal">
+                    <div class="lawyer-avatar-container" :style="{ background: abogado.color }">
+                      {{ abogado.avatar }}
                     </div>
-                    <p class="lawyer-specialty-txt">{{ abogado.especialidad }}</p>
-                    <div class="lawyer-footer-meta">
-                      <span>✉️ {{ abogado.correo }}</span>
-                      <span>📞 {{ abogado.telefono }}</span>
+                    <div class="lawyer-info-flex">
+                      <div class="lawyer-header-meta">
+                        <h4>{{ abogado.nombre }}</h4>
+                        <span :class="['badge-status-pill', abogado.status]">
+                          {{ abogado.estado === 'available' ? '● Disponible ahora' : '● En consulta' }}
+                        </span>
+                      </div>
+                      <p class="lawyer-specialty-txt">{{ abogado.especialidad }}</p>
+                      <div class="lawyer-footer-meta">
+                        <span>✉️ {{ abogado.correo }}</span>
+                        <span>📞 {{ abogado.telefono }}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="lawyer-actions-column">
-                    <button class="btn-lawyer-action contact">Contactar</button>
-                    <button class="btn-lawyer-action profile">Ver perfil</button>
+                    <div class="lawyer-actions-column">
+                      <button class="btn-lawyer-action contact">Contactar</button>
+                      <button class="btn-lawyer-action profile">Ver perfil</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -148,8 +196,8 @@
 
           <div class="sticky-chat-input-bar">
             <div class="input-wrapper-flex">
-              <input type="text" v-model="inputValue" placeholder="Escribe tu consulta legal..." class="bottom-chat-input" />
-              <button class="btn-send-chat" :style="{ background: inputValue ? '#7C3AED' : '#CBD5E1' }">
+              <input type="text" v-model="nuevoMensaje" placeholder="Escribe tu consulta legal..." class="bottom-chat-input" :disabled="cargando" @keyup.enter.prevent="enviarMensaje" />
+              <button class="btn-send-chat" :style="{ background: nuevoMensaje.trim() && !cargando ? '#7C3AED' : '#CBD5E1' }" :disabled="cargando || !nuevoMensaje.trim()" @click.prevent="enviarMensaje">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>
             </div>
@@ -211,7 +259,7 @@
           <section class="panel-block">
             <p class="section-block-title">Mis últimas consultas</p>
             <div class="recent-queries-stack">
-              <button v-for="query in recentQueries" :key="query.label" class="recent-query-row-btn">
+              <button v-for="query in recentQueries" :key="query.label" class="recent-query-row-btn" @click.prevent="handleSuggestedQuery(query.label)">
                 <span class="query-icon-wrap">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" :stroke="query.color" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </span>
@@ -326,10 +374,42 @@ export default {
         nombre: 'Nelson',
         apellido: 'Mejia',
       },
+      nuevoMensaje: '',
+      historialMensajes: [
+        {
+          remitente: 'Bot',
+          contenido: 'En caso de un choque leve con solo daños materiales en El Salvador, te recomiendo seguir estos pasos:',
+          enviado_en: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          inicial: true,
+        },
+      ],
+      cargando: false,
+      showLawyers: false,
+      lawyers: [],
+      lawyersFetched: false,
+      lawyersLoading: false,
+      suggestedLawyers: [
+        { name: 'Laura Méndez', specialty: 'Accidentes', status: 'available' },
+        { name: 'María López', specialty: 'Daños Materiales', status: 'busy' },
+      ],
+      recentQueries: [
+        { label: '¿Qué hacer tras un choque?', color: '#4F7CF7' },
+        { label: 'Reclamar daños materiales', color: '#F59E0B' },
+        { label: 'Asesoría penal urgente', color: '#22C55E' },
+      ],
+      consultasHistory: [
+        { id: 1, title: 'Choque leve en San Salvador', category: 'Tránsito', date: '30 May 2026', iconBg: '#E0E7FF', iconColor: '#4F7CF7', status: 'proceso', action: 'Revisar' },
+        { id: 2, title: 'Accidente con heridos', category: 'Penal', date: '28 May 2026', iconBg: '#FEF3C7', iconColor: '#F59E0B', status: 'pendiente', action: 'Seguir' },
+      ],
+      statusConfig: {
+        proceso: { bg: '#EFF6FF', color: '#2563EB', label: 'En proceso' },
+        pendiente: { bg: '#FFEDD5', color: '#EA580C', label: 'Pendiente' },
+      },
     }
   },
   async mounted() {
     await this.fetchCurrentUser()
+    this.scrollAlFinal()
   },
   methods: {
     async fetchCurrentUser() {
@@ -338,6 +418,38 @@ export default {
         this.currentUser = response.data
       } catch (error) {
         console.error('Error cargando usuario actual:', error)
+      }
+    },
+    async fetchLawyers() {
+      if (this.lawyersFetched || this.lawyersLoading) {
+        return
+      }
+
+      this.lawyersLoading = true
+      try {
+        const response = await axios.get('/abogados/list')
+        this.lawyers = response.data.map((abogado, index) => ({
+          id: abogado.id,
+          nombre: abogado.nombre,
+          especialidad: abogado.especialidad,
+          correo: abogado.correo,
+          telefono: abogado.telefono,
+          estado: abogado.disponible ? 'available' : 'busy',
+          status: abogado.disponible ? 'available' : 'busy',
+          color: ['#7C3AED', '#4F7CF7', '#22C55E'][index % 3],
+          avatar: abogado.nombre.charAt(0).toUpperCase() || 'A',
+        }))
+        this.lawyersFetched = true
+      } catch (error) {
+        console.error('Error cargando abogados desde la BD:', error)
+      } finally {
+        this.lawyersLoading = false
+      }
+    },
+    toggleLawyers() {
+      this.showLawyers = !this.showLawyers
+      if (this.showLawyers) {
+        this.fetchLawyers()
       }
     },
     navigateToInicio() {
@@ -359,7 +471,131 @@ export default {
         console.error('Error al cerrar sesión:', error);
         window.location.href = '/login';
       }
-    }
+    },
+    async enviarMensaje() {
+      const mensajeTexto = this.nuevoMensaje.trim()
+      if (!mensajeTexto || this.cargando) {
+        return
+      }
+
+      const horaEnvio = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      this.historialMensajes.push({ remitente: 'Usuario', contenido: mensajeTexto, enviado_en: horaEnvio })
+      this.nuevoMensaje = ''
+      this.cargando = true
+      this.scrollAlFinal()
+
+        try {
+        const formData = new FormData();
+        formData.append('mensaje', mensajeTexto);
+
+        // Enviar historial reciente para que la IA mantenga el hilo de la conversación
+        const recent = this.historialMensajes.slice(-8).map(m => ({ role: m.remitente === 'Usuario' ? 'user' : 'assistant', content: m.contenido }));
+        formData.append('historial', JSON.stringify(recent));
+
+        // Petición única POST apuntando directamente al puerto de Laravel (8000)
+        const response = await axios.post('http://127.0.0.1:8000/api/chat/consulta', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        console.log("Respuesta cruda del backend:", response);
+
+        let textoFinal = '';
+        let requiereAbogado = false;
+        let listaAbogados = [];
+        let especialidadRequerida = null;
+
+        if (response && response.data) {
+          requiereAbogado = response.data.requiere_abogado ?? false;
+          listaAbogados = Array.isArray(response.data.abogados) ? response.data.abogados : [];
+          especialidadRequerida = response.data.especialidad_requerida || null;
+
+          if (response.data.respuesta) {
+            textoFinal = response.data.respuesta;
+          } else if (typeof response.data === 'string') {
+            textoFinal = response.data;
+          } else if (response.data.data && response.data.data.respuesta) {
+            textoFinal = response.data.data.respuesta;
+          } else {
+            textoFinal = JSON.stringify(response.data);
+          }
+        }
+
+        // Limpieza de marcadores de metadatos de la IA
+        if (textoFinal.includes('---')) {
+          textoFinal = textoFinal.split('---')[1] || textoFinal;
+        }
+        if (textoFinal.includes('JSON_METADATA:')) {
+          textoFinal = textoFinal.replace(/JSON_METADATA:\{.*?\}/g, '');
+        }
+
+        // Agregar respuesta del bot
+        this.historialMensajes.push({
+          remitente: 'Bot',
+          contenido: textoFinal.trim(),
+          enviado_en: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          requiereAbogado,
+          listaAbogados,
+          especialidadRequerida,
+          showAbogados: false
+        });
+      } catch (error) {
+        console.error("Error capturado en Axios:", error);
+
+        let errorDetalle = "Lo siento, hubo un error de comunicación.";
+        if (error.response && error.response.data) {
+          if (error.response.data.error) {
+            errorDetalle = error.response.data.error;
+          } else if (error.response.data.respuesta) {
+            errorDetalle = error.response.data.respuesta;
+          } else if (error.response.data.message) {
+            errorDetalle = error.response.data.message;
+          } else if (typeof error.response.data === 'string') {
+            errorDetalle = error.response.data;
+          }
+
+          if (error.response.status && !errorDetalle.includes('HTTP')) {
+            errorDetalle += ` (HTTP ${error.response.status})`;
+          }
+        } else if (error.message) {
+          errorDetalle = error.message;
+        }
+
+        if (errorDetalle.includes('---')) {
+          errorDetalle = errorDetalle.split('---')[1] || errorDetalle;
+        }
+
+        this.historialMensajes.push({
+          remitente: 'Bot',
+          contenido: errorDetalle.trim(),
+          requiereAbogado: false,
+          listaAbogados: [],
+          especialidadRequerida: null,
+          showAbogados: false
+        });
+      } finally {
+        this.cargando = false;
+        this.scrollAlFinal();
+      }
+    },
+    async handleSuggestedQuery(texto) {
+      if (this.cargando) {
+        return
+      }
+      this.nuevoMensaje = texto
+      await this.$nextTick()
+      await this.enviarMensaje()
+    },
+    scrollAlFinal() {
+      this.$nextTick(() => {
+        const container = this.$refs.chatScroll
+        if (container) {
+          container.scrollTop = container.scrollHeight
+        }
+      })
+    },
+    getAbogadoImageUrl(imagen) {
+      return imagen ? `/storage/${imagen}` : '/storage/abogados/default-avatar.png'
+    },
   }
 }
 </script>
@@ -500,6 +736,110 @@ export default {
 .message-bubble.bg-dark { background: #020617; color: #F8FAFC; border-bottom-right-radius: 4px; }
 .message-bubble.bg-white { background: white; border-top-left-radius: 4px; width: 100%; }
 
+.contact-lawyers-card {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #E5E7EB;
+  border-radius: 18px;
+  background: #F8FAFC;
+}
+.contact-lawyers-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.contact-lawyers-badge {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #FEE2E2;
+  color: #B91C1C;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.contact-lawyers-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #111827;
+}
+.contact-lawyers-type {
+  font-size: 12px;
+  color: #4B5563;
+  background: #E0F2FE;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+.contact-lawyers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.contact-lawyer-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid #E5E7EB;
+}
+.contact-lawyer-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid #7C3AED;
+}
+.contact-lawyer-info {
+  flex: 1;
+}
+.contact-lawyer-name {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+.contact-lawyer-specialty {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #4B5563;
+}
+.contact-lawyer-phone {
+  font-size: 13px;
+  color: #0F172A;
+  text-decoration: none;
+}
+.contact-lawyer-phone:hover {
+  text-decoration: underline;
+}
+.btn-contact-lawyer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  color: white;
+  background: #16A34A;
+  border: none;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+.btn-contact-lawyer:hover {
+  background: #15803d;
+}
+.contact-lawyers-empty {
+  padding: 12px;
+  border-radius: 12px;
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 13px;
+}
+
 .chat-avatar-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; margin-bottom: 2px; align-self: flex-end; }
 .mini-purple { background: #7C3AED; }
 
@@ -590,6 +930,8 @@ export default {
 .input-wrapper-flex { background: white; border: 1px solid rgba(0,0,0,0.1); border-radius: 16px; padding: 6px 6px 6px 18px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 .bottom-chat-input { flex: 1; border: none; outline: none; font-family: 'Sora'; font-size: 14px; color: #020617; background: transparent; }
 .btn-send-chat { width: 36px; height: 36px; border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+.typing-indicator { margin-left: auto; display: inline-flex; align-items: center; background: #F8FAFC; border-radius: 999px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.08); max-width: fit-content; }
+.typing-indicator .bubble-text { margin: 0; color: #64748B; font-size: 13px; }
 
 /* PANEL DERECHO */
 .right-info-panel { width: 288px; background: white; border-left: 1px solid rgba(0,0,0,0.07); padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; scrollbar-width: none; }
