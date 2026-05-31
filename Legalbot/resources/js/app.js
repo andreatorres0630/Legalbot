@@ -7,6 +7,8 @@ import GestionUsuarios from './components/GestionUsuarios.vue';
 import ChatLegal from './components/ChatLegal.vue';
 import login from './components/login.vue';
 import registro from './components/registro.vue';
+import MisExpediente from './components/MisExpediente.vue';
+import DetalleExpediente from './components/DetalleExpediente.vue';
 
 const app = createApp({})
 
@@ -17,5 +19,7 @@ app.component('dashboard-admin',DashboardAdmin)
 app.component('dashboard-usuario',DashboardUsuario)
 app.component('gestion-usuarios', GestionUsuarios)
 app.component('chat-legal',ChatLegal)
+app.component('mis-expediente', MisExpediente)
+app.component('detalle-expediente', DetalleExpediente)
 
 app.mount('#app')

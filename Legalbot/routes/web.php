@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AbogadoController;
+use App\Http\Controllers\Api\ExpedienteController;
+use App\Http\Controllers\API\LegalChatController;
 
 Route::get('/', function () {
     return view('login');
@@ -51,6 +53,18 @@ Route::middleware('auth')->group(function () {
     Route::delete('/abogados/{abogado}', [AbogadoController::class, 'destroy']);
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::get('/actividad-reciente', [AuthController::class, 'actividadReciente']);
+    Route::get('/mis-expedientes', fn() => view('MisExpediente'));
+    Route::get('/expedientes/{numero}', fn() => view('DetalleExpediente'));
+    Route::get('/api/expedientes',                    [ExpedienteController::class, 'index']);
+    Route::post('/api/expedientes',                   [ExpedienteController::class, 'store']);
+    Route::get('/api/expedientes/{numero}',           [ExpedienteController::class, 'show']);
+    Route::patch('/api/expedientes/{numero}/estado',  [ExpedienteController::class, 'updateEstado']);
+    Route::get('/api/expedientes/{numero}/historial', [ExpedienteController::class, 'historial']);
+    Route::get('/api/mis-consultas',                  [ExpedienteController::class, 'misConsultas']);
+
+    Route::post('/api/chat/consulta', [LegalChatController::class, 'procesarConsulta']);
+    Route::delete('/api/expedientes/{numero}',        [ExpedienteController::class, 'destroy']);
+
 });
 
 Route::get('/chatLegal', function () {

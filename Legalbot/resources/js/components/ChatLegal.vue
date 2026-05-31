@@ -24,7 +24,7 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </span> Chat Legal
         </a>
-        <a href="#" class="nav-item">
+        <a href="/mis-expedientes" class="nav-item">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
           </span> Expedientes
@@ -267,7 +267,7 @@
                 <span class="query-arrow-icon">›</span>
               </button>
             </div>
-            <button class="btn-trigger-all-history-modal" @click="showModal = true">
+            <button class="btn-trigger-all-history-modal" @click="window.location.href = '/mis-expedientes'">
               Ver todas las consultas
             </button>
           </section>
@@ -370,19 +370,17 @@ export default {
   name: 'ChatLegal',
   data() {
     return {
+      // ← CORREGIDO: expedienteNumero y consultaId al nivel raíz, NO dentro de currentUser
+      expedienteNumero: null,
+      consultaId: null,
+
       currentUser: {
-        nombre: 'Nelson',
-        apellido: 'Mejia',
+        nombre: 'Usuario',
+        apellido: '',
       },
       nuevoMensaje: '',
-      historialMensajes: [
-        {
-          remitente: 'Bot',
-          contenido: 'En caso de un choque leve con solo daños materiales en El Salvador, te recomiendo seguir estos pasos:',
-          enviado_en: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          inicial: true,
-        },
-      ],
+      historialMensajes: [],
+      showModal: false,
       cargando: false,
       showLawyers: false,
       lawyers: [],
@@ -409,6 +407,7 @@ export default {
   },
   async mounted() {
     await this.fetchCurrentUser()
+    await this.cargarHistorialSiExiste()
     this.scrollAlFinal()
   },
   methods: {
@@ -421,9 +420,7 @@ export default {
       }
     },
     async fetchLawyers() {
-      if (this.lawyersFetched || this.lawyersLoading) {
-        return
-      }
+      if (this.lawyersFetched || this.lawyersLoading) return
 
       this.lawyersLoading = true
       try {
@@ -446,21 +443,48 @@ export default {
         this.lawyersLoading = false
       }
     },
+    async cargarHistorialSiExiste() {
+    // Leer el número de expediente de la URL
+    const params = new URLSearchParams(window.location.search)
+    const numero = params.get('expediente')
+    if (!numero) return
+
+    // Guardar el número para que los siguientes mensajes lo usen
+    this.expedienteNumero = numero
+
+    try {
+        const res = await axios.get(`/api/expedientes/${numero}/historial`)
+        const mensajes = res.data
+
+        if (mensajes && mensajes.length > 0) {
+            // Obtener el consulta_id del primer mensaje
+            this.consultaId = mensajes[0].consulta_id
+
+            // Mapear los mensajes al formato del historial del chat
+            this.historialMensajes = mensajes.map(m => ({
+                remitente: m.remitente === 'usuario' ? 'Usuario' : 'Bot',
+                contenido: m.mensaje,
+                enviado_en: m.enviado_en,
+                requiereAbogado: false,
+                listaAbogados: [],
+                especialidadRequerida: null,
+                showAbogados: false
+            }))
+        }
+    } catch (error) {
+        console.error('Error cargando historial:', error)
+    }
+    },
     toggleLawyers() {
       this.showLawyers = !this.showLawyers
-      if (this.showLawyers) {
-        this.fetchLawyers()
-      }
+      if (this.showLawyers) this.fetchLawyers()
     },
     navigateToInicio() {
       window.location.href = '/inicio'
     },
     async handleLogout() {
       const confirmed = confirm('¿Estás seguro que quieres cerrar sesión?')
-      
-      if (!confirmed) {
-        return
-      }
+      if (!confirmed) return
 
       try {
         await axios.post('/logout', {
@@ -474,9 +498,7 @@ export default {
     },
     async enviarMensaje() {
       const mensajeTexto = this.nuevoMensaje.trim()
-      if (!mensajeTexto || this.cargando) {
-        return
-      }
+      if (!mensajeTexto || this.cargando) return
 
       const horaEnvio = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       this.historialMensajes.push({ remitente: 'Usuario', contenido: mensajeTexto, enviado_en: horaEnvio })
@@ -484,20 +506,30 @@ export default {
       this.cargando = true
       this.scrollAlFinal()
 
-        try {
+      try {
         const formData = new FormData();
         formData.append('mensaje', mensajeTexto);
 
-        // Enviar historial reciente para que la IA mantenga el hilo de la conversación
-        const recent = this.historialMensajes.slice(-8).map(m => ({ role: m.remitente === 'Usuario' ? 'user' : 'assistant', content: m.contenido }));
+        // Historial reciente para mantener el hilo
+        const recent = this.historialMensajes.slice(-8).map(m => ({
+          role: m.remitente === 'Usuario' ? 'user' : 'assistant',
+          content: m.contenido
+        }));
         formData.append('historial', JSON.stringify(recent));
 
-        // Petición única POST apuntando directamente al puerto de Laravel (8000)
+        // ← CORREGIDO: ahora sí existe this.expedienteNumero y this.consultaId
+        if (this.expedienteNumero) {
+          formData.append('expediente_numero', this.expedienteNumero)
+        }
+        if (this.consultaId) {
+          formData.append('consulta_id', this.consultaId)
+        }
+
         const response = await axios.post('http://127.0.0.1:8000/api/chat/consulta', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
 
-        console.log("Respuesta cruda del backend:", response);
+        console.log("Respuesta del backend:", response.data);
 
         let textoFinal = '';
         let requiereAbogado = false;
@@ -505,10 +537,19 @@ export default {
         let especialidadRequerida = null;
 
         if (response && response.data) {
-          requiereAbogado = response.data.requiere_abogado ?? false;
-          listaAbogados = Array.isArray(response.data.abogados) ? response.data.abogados : [];
+          requiereAbogado       = response.data.requiere_abogado ?? false;
+          listaAbogados         = Array.isArray(response.data.abogados) ? response.data.abogados : [];
           especialidadRequerida = response.data.especialidad_requerida || null;
 
+          // ← CORREGIDO: guardar expediente y consulta ANTES de asignar textoFinal
+          if (response.data.expediente_numero) {
+            this.expedienteNumero = response.data.expediente_numero
+          }
+          if (response.data.consulta_id) {
+            this.consultaId = response.data.consulta_id
+          }
+
+          // ← CORREGIDO: if/else limpio sin mezclar con las asignaciones anteriores
           if (response.data.respuesta) {
             textoFinal = response.data.respuesta;
           } else if (typeof response.data === 'string') {
@@ -520,7 +561,7 @@ export default {
           }
         }
 
-        // Limpieza de marcadores de metadatos de la IA
+        // Limpieza de marcadores de la IA
         if (textoFinal.includes('---')) {
           textoFinal = textoFinal.split('---')[1] || textoFinal;
         }
@@ -528,7 +569,6 @@ export default {
           textoFinal = textoFinal.replace(/JSON_METADATA:\{.*?\}/g, '');
         }
 
-        // Agregar respuesta del bot
         this.historialMensajes.push({
           remitente: 'Bot',
           contenido: textoFinal.trim(),
@@ -538,20 +578,16 @@ export default {
           especialidadRequerida,
           showAbogados: false
         });
+
       } catch (error) {
-        console.error("Error capturado en Axios:", error);
+        console.error("Error en Axios:", error);
 
         let errorDetalle = "Lo siento, hubo un error de comunicación.";
         if (error.response && error.response.data) {
-          if (error.response.data.error) {
-            errorDetalle = error.response.data.error;
-          } else if (error.response.data.respuesta) {
-            errorDetalle = error.response.data.respuesta;
-          } else if (error.response.data.message) {
-            errorDetalle = error.response.data.message;
-          } else if (typeof error.response.data === 'string') {
-            errorDetalle = error.response.data;
-          }
+          if (error.response.data.error)          errorDetalle = error.response.data.error;
+          else if (error.response.data.respuesta) errorDetalle = error.response.data.respuesta;
+          else if (error.response.data.message)   errorDetalle = error.response.data.message;
+          else if (typeof error.response.data === 'string') errorDetalle = error.response.data;
 
           if (error.response.status && !errorDetalle.includes('HTTP')) {
             errorDetalle += ` (HTTP ${error.response.status})`;
@@ -578,9 +614,7 @@ export default {
       }
     },
     async handleSuggestedQuery(texto) {
-      if (this.cargando) {
-        return
-      }
+      if (this.cargando) return
       this.nuevoMensaje = texto
       await this.$nextTick()
       await this.enviarMensaje()
@@ -588,9 +622,7 @@ export default {
     scrollAlFinal() {
       this.$nextTick(() => {
         const container = this.$refs.chatScroll
-        if (container) {
-          container.scrollTop = container.scrollHeight
-        }
+        if (container) container.scrollTop = container.scrollHeight
       })
     },
     getAbogadoImageUrl(imagen) {
@@ -614,7 +646,6 @@ export default {
   font-family: 'Sora', sans-serif;
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 260px;
   background-color: #DCD0EE;
@@ -626,105 +657,34 @@ export default {
   z-index: 100;
 }
 
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 48px;
-}
-
-.brand-icon {
-  background: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+.sidebar-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
+.brand-icon { background: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 .brand-name { font-weight: 700; font-size: 18px; color: #020617; }
 .brand-tagline { font-size: 10px; color: #5a4b81; font-weight: 500; }
-
 .sidebar-nav { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 
 .nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: #5a4b81;
-  font-size: 14px;
-  font-weight: 500;
-  transition: 0.3s;
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  border-radius: 12px; text-decoration: none; color: #5a4b81;
+  font-size: 14px; font-weight: 500; transition: 0.3s;
 }
-
 .nav-item:hover { background: rgba(255, 255, 255, 0.4); }
+.nav-item.active { background-color: #020617; color: white; }
+.logout { margin-top: auto; color: #991b1b; cursor: pointer; }
 
-.nav-item.active {
-  background-color: #020617;
-  color: white;
-}
+.main-wrapper { margin-left: 260px; flex: 1; display: flex; flex-direction: column; height: 100vh; min-width: 0; position: relative; }
 
-.logout { margin-top: auto; color: #991b1b; }
-
-/* MAIN WRAPPER */
-.main-wrapper { 
-    margin-left: 260px; 
-    flex: 1;
-    display: flex; 
-  flex-direction: column; 
-  height: 100vh; 
-  min-width: 0;
-  position: relative;
-}
-
-.top-header {
-  height: 80px;
-  background: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 40px;
-  border-bottom: 1px solid #E2E8F0;
-}
-
+.top-header { height: 80px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; border-bottom: 1px solid #E2E8F0; }
 .welcome-title { font-size: 20px; font-weight: 700; color: #020617; }
 .welcome-subtitle { font-size: 13px; color: #64748B; }
-
 .header-user { display: flex; align-items: center; gap: 24px; }
 .user-profile { display: flex; align-items: center; gap: 10px; }
-.user-avatar {
-  width: 38px; height: 38px;
-  background: #4F7CF7;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-}
-
+.user-avatar { width: 38px; height: 38px; background: #4F7CF7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
 .content-row { display: flex; flex: 1; overflow: hidden; }
+.text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* PANEL CENTRAL (ÁREA DE CHAT TIPO CHATGPT) */
-.text-truncate {
-  white-space: nowrap;    
-  overflow: hidden;       
-  text-overflow: ellipsis; 
-}
-
-.chat-area { 
-    flex: 1; 
-    display: flex; 
-    flex-direction: column; 
-    background: #F8FAFC; 
-    position: relative; 
-    border-right: 1px solid rgba(0,0,0,0.07); }
-    
+.chat-area { flex: 1; display: flex; flex-direction: column; background: #F8FAFC; position: relative; border-right: 1px solid rgba(0,0,0,0.07); }
 .chat-messages-scroll { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding-bottom: 100px; scrollbar-width: none; }
 .chat-messages-scroll::-webkit-scrollbar { display: none; }
 
@@ -736,113 +696,25 @@ export default {
 .message-bubble.bg-dark { background: #020617; color: #F8FAFC; border-bottom-right-radius: 4px; }
 .message-bubble.bg-white { background: white; border-top-left-radius: 4px; width: 100%; }
 
-.contact-lawyers-card {
-  margin-top: 18px;
-  padding: 18px;
-  border: 1px solid #E5E7EB;
-  border-radius: 18px;
-  background: #F8FAFC;
-}
-.contact-lawyers-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-.contact-lawyers-badge {
-  display: inline-flex;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #FEE2E2;
-  color: #B91C1C;
-  font-size: 11px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.contact-lawyers-header h4 {
-  margin: 0;
-  font-size: 16px;
-  color: #111827;
-}
-.contact-lawyers-type {
-  font-size: 12px;
-  color: #4B5563;
-  background: #E0F2FE;
-  padding: 6px 10px;
-  border-radius: 999px;
-}
-.contact-lawyers-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.contact-lawyer-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px;
-  border-radius: 16px;
-  background: white;
-  border: 1px solid #E5E7EB;
-}
-.contact-lawyer-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 2px solid #7C3AED;
-}
-.contact-lawyer-info {
-  flex: 1;
-}
-.contact-lawyer-name {
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 700;
-  color: #111827;
-}
-.contact-lawyer-specialty {
-  margin: 0 0 6px;
-  font-size: 13px;
-  color: #4B5563;
-}
-.contact-lawyer-phone {
-  font-size: 13px;
-  color: #0F172A;
-  text-decoration: none;
-}
-.contact-lawyer-phone:hover {
-  text-decoration: underline;
-}
-.btn-contact-lawyer {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 16px;
-  color: white;
-  background: #16A34A;
-  border: none;
-  border-radius: 12px;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 700;
-}
-.btn-contact-lawyer:hover {
-  background: #15803d;
-}
-.contact-lawyers-empty {
-  padding: 12px;
-  border-radius: 12px;
-  background: #FEF3C7;
-  color: #92400E;
-  font-size: 13px;
-}
+.contact-lawyers-card { margin-top: 18px; padding: 18px; border: 1px solid #E5E7EB; border-radius: 18px; background: #F8FAFC; }
+.contact-lawyers-header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+.contact-lawyers-badge { display: inline-flex; padding: 5px 10px; border-radius: 999px; background: #FEE2E2; color: #B91C1C; font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+.contact-lawyers-header h4 { margin: 0; font-size: 16px; color: #111827; }
+.contact-lawyers-type { font-size: 12px; color: #4B5563; background: #E0F2FE; padding: 6px 10px; border-radius: 999px; }
+.contact-lawyers-list { display: flex; flex-direction: column; gap: 12px; }
+.contact-lawyer-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; background: white; border: 1px solid #E5E7EB; }
+.contact-lawyer-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid #7C3AED; }
+.contact-lawyer-info { flex: 1; }
+.contact-lawyer-name { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: #111827; }
+.contact-lawyer-specialty { margin: 0 0 6px; font-size: 13px; color: #4B5563; }
+.contact-lawyer-phone { font-size: 13px; color: #0F172A; text-decoration: none; }
+.contact-lawyer-phone:hover { text-decoration: underline; }
+.btn-contact-lawyer { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; color: white; background: #16A34A; border: none; border-radius: 12px; text-decoration: none; font-size: 13px; font-weight: 700; }
+.btn-contact-lawyer:hover { background: #15803d; }
+.contact-lawyers-empty { padding: 12px; border-radius: 12px; background: #FEF3C7; color: #92400E; font-size: 13px; }
 
 .chat-avatar-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; margin-bottom: 2px; align-self: flex-end; }
 .mini-purple { background: #7C3AED; }
-
 .ai-icon-wrapper { width: 32px; height: 32px; background: #F5F0FF; border: 1px solid #DDD6FE; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .bubble-brand-name { font-size: 14px; font-weight: 700; color: #020617; margin-bottom: 4px; }
 .bubble-text { color: #334155; margin-bottom: 12px; }
@@ -850,67 +722,27 @@ export default {
 .legal-steps-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 .legal-steps-list li { display: flex; align-items: start; gap: 12px; color: #334155; }
 .step-num { width: 20px; height: 20px; background: #4F7CF7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
-.panel-section-label { 
-  font-size: 11px; 
-  font-weight: 700; 
-  color: #94A3B8; 
-  text-transform: uppercase; 
-  letter-spacing: 0.04em; 
-  margin-bottom: 12px; /* Mismo espaciado amplio de las cajas superiores */
-}
 
-.legal-areas-mini-stack { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 6px; 
-}
-
-.area-mini-pill {
-  border: 1px solid rgba(0, 0, 0, 0.02);
-  border-radius: 12px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center; /* Centrado vertical perfecto del icono y texto */
-  width: 100%;
-}
-
-.area-icon-dot {
-  margin-right: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0; /* Evita que el SVG pierda sus proporciones */
-}
-
-.area-title-lbl {
-  font-size: 13px;
-  color: #020617;
-  font-weight: 600;
-  flex: 1; /* Empuja la flecha hacia el extremo derecho */
-}
-
-.area-arrow-lbl {
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1;
-}
+.panel-section-label { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
+.legal-areas-mini-stack { display: flex; flex-direction: column; gap: 6px; }
+.area-mini-pill { border: 1px solid rgba(0, 0, 0, 0.02); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; width: 100%; }
+.area-icon-dot { margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.area-title-lbl { font-size: 13px; color: #020617; font-weight: 600; flex: 1; }
+.area-arrow-lbl { font-size: 16px; font-weight: 700; line-height: 1; }
 
 .warning-alert { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 10px 14px; display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
 .warning-alert p { font-size: 12px; color: #92400E; }
 .warning-alert span { font-weight: 600; }
-
 .btn-ver-abogados { background: #7C3AED; color: white; border: none; padding: 10px 18px; border-radius: 12px; font-family: 'Sora'; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 8px; align-items: center; box-shadow: 0 4px 6px -1px rgba(124, 111, 247, 0.2); transition: 0.15s; }
 .btn-ver-abogados:hover { opacity: 0.9; transform: translateY(-1px); }
 
-/* SECCIÓN DINÁMICA ABOGADOS */
 .recommended-lawyers-wrapper { border-top: 1px dashed #E2E8F0; margin-top: 24px; padding-top: 20px; margin-left: 44px; }
 .recommended-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .recommended-header h3 { font-size: 14px; font-weight: 700; color: #020617; }
 .close-section { background: none; border: none; cursor: pointer; }
-
 .lawyers-stack { display: flex; flex-direction: column; gap: 12px; }
 .lawyer-card-horizontal { background: white; border: 1px solid rgba(0,0,0,0.07); border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-.lawyer-avatar-container { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; flex-shrink: 0; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1); }
+.lawyer-avatar-container { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; flex-shrink: 0; }
 .lawyer-info-flex { flex: 1; min-width: 0; }
 .lawyer-header-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .lawyer-header-meta h4 { font-size: 14px; font-weight: 700; color: #020617; }
@@ -919,13 +751,11 @@ export default {
 .badge-status-pill.busy { background: #FEF3C7; color: #92400E; }
 .lawyer-specialty-txt { font-size: 12px; color: #7C3AED; margin-top: 1px; font-weight: 500; }
 .lawyer-footer-meta { display: flex; gap: 16px; font-size: 12px; color: #64748B; margin-top: 6px; }
-
 .lawyer-actions-column { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
 .btn-lawyer-action { border: none; padding: 6px 14px; border-radius: 8px; font-family: 'Sora'; font-size: 12px; font-weight: 600; cursor: pointer; }
 .btn-lawyer-action.contact { background: #7C3AED; color: white; }
 .btn-lawyer-action.profile { background: white; color: #020617; border: 1px solid rgba(0,0,0,0.1); }
 
-/* STICKY INPUT BAR */
 .sticky-chat-input-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 30px; background: linear-gradient(to top, #F8FAFC 80%, transparent); }
 .input-wrapper-flex { background: white; border: 1px solid rgba(0,0,0,0.1); border-radius: 16px; padding: 6px 6px 6px 18px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 .bottom-chat-input { flex: 1; border: none; outline: none; font-family: 'Sora'; font-size: 14px; color: #020617; background: transparent; }
@@ -933,7 +763,6 @@ export default {
 .typing-indicator { margin-left: auto; display: inline-flex; align-items: center; background: #F8FAFC; border-radius: 999px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.08); max-width: fit-content; }
 .typing-indicator .bubble-text { margin: 0; color: #64748B; font-size: 13px; }
 
-/* PANEL DERECHO */
 .right-info-panel { width: 288px; background: white; border-left: 1px solid rgba(0,0,0,0.07); padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; scrollbar-width: none; }
 .right-info-panel::-webkit-scrollbar { display: none; }
 .panel-block { display: flex; flex-direction: column; }
@@ -971,21 +800,13 @@ export default {
 .query-arrow-icon { color: #CBD5E1; font-size: 14px; }
 .btn-trigger-all-history-modal { background: #7C3AED; color: white; border: none; padding: 10px; border-radius: 12px; font-family: 'Sora'; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 6px -1px rgba(124, 111, 247, 0.1); }
 
-.legal-areas-column-stack { display: flex; flex-direction: column; gap: 6px; }
-.legal-area-pill-row { border: 1px solid rgba(0,0,0,0.03); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; width: 100%; }
-.area-pill-icon { margin-right: 10px; display: flex; align-items: center; }
-.area-pill-label-txt { font-size: 12px; font-weight: 600; color: #020617; flex: 1; }
-.area-pill-chevron-arrow { font-size: 14px; font-weight: 700; }
-
-/* CAPA DEL MODAL HISTORIAL (CON BLUR INTEGRADO) */
 .modal-blur-overlay-layer { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
 .history-modal-container { background: white; width: 100%; max-width: 500px; border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; max-height: 86vh; }
-.modal-stripe-deco { height: 4px; height: 4px; width: 100%; background: linear-gradient(90deg, #7C3AED, #4F7CF7); }
+.modal-stripe-deco { height: 4px; width: 100%; background: linear-gradient(90deg, #7C3AED, #4F7CF7); }
 .history-modal-header-top { padding: 24px 28px 16px; display: flex; justify-content: space-between; align-items: start; }
 .history-modal-header-top h3 { font-size: 20px; font-weight: 700; color: #111827; }
 .history-modal-header-top p { font-size: 13px; color: #6B7280; margin-top: 2px; }
 .btn-close-modal-x { background: none; border: none; font-size: 26px; color: #9CA3AF; cursor: pointer; line-height: 1; }
-
 .history-modal-body-scroll { padding: 4px 28px 20px; overflow-y: auto; flex: 1; background: #FAFAFA; border-top: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03); scrollbar-width: none; }
 .history-modal-body-scroll::-webkit-scrollbar { display: none; }
 .modal-history-cards-stack { display: flex; flex-direction: column; gap: 10px; padding: 12px 0; }
@@ -996,15 +817,12 @@ export default {
 .h-card-left-info h4 { font-size: 14px; font-weight: 700; color: #111827; }
 .h-card-left-info p { font-size: 12px; color: #6B7280; margin-top: 1px; }
 .txt-purple-accent { color: #7C3AED; font-weight: 500; }
-
 .h-card-right-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .badge-status-history { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
 .btn-history-action-trigger { background: #F5F0FF; color: #7C3AED; border: 1px solid #DDD6FE; padding: 5px 12px; border-radius: 8px; font-family: 'Sora'; font-size: 11px; font-weight: 600; cursor: pointer; }
 .btn-history-action-trigger.proceso { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
 .btn-history-action-trigger.pendiente { background: #FFF7ED; color: #EA580C; border-color: #FFEDD5; }
-
 .history-modal-footer-bottom { padding: 16px 28px; display: flex; gap: 12px; background: white; }
 .btn-modal-footer-close { flex: 1; border: 1px solid rgba(0,0,0,0.1); background: white; padding: 10px; border-radius: 12px; font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; }
 .btn-modal-footer-create-new { flex: 1; background: #7C3AED; color: white; border: none; padding: 10px; border-radius: 12px; font-family: 'Sora'; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; gap: 6px; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(124, 111, 247, 0.15); }
-
 </style>

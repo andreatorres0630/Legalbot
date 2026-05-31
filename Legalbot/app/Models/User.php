@@ -44,5 +44,14 @@ class User extends Authenticatable
         return $this->password_hash;
         
     }
-    public $timestamps = false;
+   
+    public function expedientes()
+    {
+        return $this->hasMany(Expediente::class, 'usuario_id', 'id');
+    }
+
+    public function consultas()
+    {
+        return $this->hasMany(Consulta::class, 'usuario_id', 'id');
+    }
 }
