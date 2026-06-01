@@ -6,6 +6,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AbogadoController;
 use App\Http\Controllers\Api\ExpedienteController;
 use App\Http\Controllers\API\LegalChatController;
+use App\Http\Controllers\DocumentoController;
 
 Route::get('/', function () {
     return view('login');
@@ -70,5 +71,16 @@ Route::middleware('auth')->group(function () {
 Route::get('/chatLegal', function () {
     return view('ChatLegal');
 })->middleware('auth');
+
+Route::get('/documentos', function() {return view('documentos');});
+
+// routes/web.php
+Route::middleware('auth')->group(function () {
+    Route::get('/api/documentos', [DocumentoController::class, 'index']);
+    Route::post('/api/documentos/generar-acuerdo', [DocumentoController::class, 'generarAcuerdo']);
+    Route::post('/api/documentos/generar-reclamo',  [DocumentoController::class, 'generarReclamo']);
+    Route::post('/api/documentos/generar-denuncia', [DocumentoController::class, 'generarDenuncia']);
+    Route::post('/api/documentos/borrador',          [DocumentoController::class, 'guardarBorrador']);
+});
 
 // routes/api.php

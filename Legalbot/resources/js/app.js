@@ -9,6 +9,7 @@ import login from './components/login.vue';
 import registro from './components/registro.vue';
 import MisExpediente from './components/MisExpediente.vue';
 import DetalleExpediente from './components/DetalleExpediente.vue';
+import Documentos from './components/Documentos.vue';
 
 const app = createApp({})
 
@@ -21,5 +22,6 @@ app.component('gestion-usuarios', GestionUsuarios)
 app.component('chat-legal',ChatLegal)
 app.component('mis-expediente', MisExpediente)
 app.component('detalle-expediente', DetalleExpediente)
+app.component('documentos',Documentos)
 
 app.mount('#app')

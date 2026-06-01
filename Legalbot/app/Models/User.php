@@ -54,4 +54,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Consulta::class, 'usuario_id', 'id');
     }
+    public function documentos()
+    {
+    return $this->hasMany(Documento::class,'usuario_id');
+    }
+
 }
