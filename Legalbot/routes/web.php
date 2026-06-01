@@ -78,6 +78,7 @@ Route::get('/documentos', function() {return view('documentos');});
 Route::middleware('auth')->group(function () {
     Route::get('/api/documentos', [DocumentoController::class, 'index']);
     Route::get('/api/documentos/{id}', [DocumentoController::class, 'show']);
+    Route::delete('/api/documentos/{id}', [DocumentoController::class, 'destroy']);
     Route::patch('/api/documentos/{id}/descargar', [DocumentoController::class, 'marcarDescargado']);
     Route::post('/api/documentos/generar-acuerdo', [DocumentoController::class, 'generarAcuerdo']);
     Route::post('/api/documentos/generar-reclamo',  [DocumentoController::class, 'generarReclamo']);

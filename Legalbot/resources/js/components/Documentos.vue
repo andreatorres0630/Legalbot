@@ -131,6 +131,7 @@
                       Editar
                     </button>
                     <button class="btn-card-action filled-btn" @click="descargarDocumento(doc)">Descargar</button>
+                    <button class="btn-card-action border-btn" style="border-color:#ef4444;color:#ef4444;margin-left:8px" @click="eliminarDocumento(doc)">Eliminar</button>
                   </div>
                 </div>
  
@@ -460,6 +461,18 @@ const fetchDocuments = async () => {
   try {
     const response = await axios.get('/api/documentos')
     documents.value = response.data
+
+    // Actualizar contador de plantillas más usadas basado en documentos generados
+    const counts = {}
+    documents.value.forEach(doc => {
+      const t = doc.template || (doc.contenido && doc.contenido.template) || null
+      if (t) counts[t] = (counts[t] || 0) + 1
+    })
+
+    popularTemplates.value = popularTemplates.value.map(p => ({
+      ...p,
+      count: counts[p.templateId] || 0,
+    }))
   } catch (error) {
     console.error(error)
   }
@@ -554,6 +567,30 @@ const abrirDocumento = async (doc) => {
   formData.value = doc.contenido?.datos ? { ...doc.contenido.datos } : {}
   errorMsg.value = ''
   subview.value = 'generator'
+}
+
+const eliminarDocumento = async (doc) => {
+  const ok = confirm(`¿Eliminar "${doc.name}"? Esta acción no se puede deshacer.`)
+  if (!ok) return
+
+  try {
+    await axios.delete(`/api/documentos/${doc.id}`)
+    // remove from local list
+    documents.value = documents.value.filter(d => d.id !== doc.id)
+
+    // recompute popular template counts
+    const counts = {}
+    documents.value.forEach(d => {
+      const t = d.template || (d.contenido && d.contenido.template) || null
+      if (t) counts[t] = (counts[t] || 0) + 1
+    })
+    popularTemplates.value = popularTemplates.value.map(p => ({ ...p, count: counts[p.templateId] || 0 }))
+
+    alert('Documento eliminado correctamente')
+  } catch (error) {
+    console.error('Error eliminando documento:', error)
+    alert('No se pudo eliminar el documento')
+  }
 }
 
 const irAExpediente = () => {

@@ -64,6 +64,20 @@ class DocumentoController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function destroy($id)
+    {
+        $doc = Documento::where('usuario_id', auth()->id())->findOrFail($id);
+
+        // delete stored file if exists
+        if ($doc->archivo_url && Storage::disk('public')->exists($doc->archivo_url)) {
+            Storage::disk('public')->delete($doc->archivo_url);
+        }
+
+        $doc->delete();
+
+        return response()->json(['success' => true]);
+    }
+
     public function generarReclamo(Request $request)
     {
 
