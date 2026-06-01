@@ -77,6 +77,8 @@ Route::get('/documentos', function() {return view('documentos');});
 // routes/web.php
 Route::middleware('auth')->group(function () {
     Route::get('/api/documentos', [DocumentoController::class, 'index']);
+    Route::get('/api/documentos/{id}', [DocumentoController::class, 'show']);
+    Route::patch('/api/documentos/{id}/descargar', [DocumentoController::class, 'marcarDescargado']);
     Route::post('/api/documentos/generar-acuerdo', [DocumentoController::class, 'generarAcuerdo']);
     Route::post('/api/documentos/generar-reclamo',  [DocumentoController::class, 'generarReclamo']);
     Route::post('/api/documentos/generar-denuncia', [DocumentoController::class, 'generarDenuncia']);

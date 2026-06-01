@@ -126,14 +126,11 @@
  
                   <div class="doc-card-divider-line"></div>
                   <div class="doc-card-actions-flex-row">
-                    <button class="btn-card-action border-btn" @click="verDocumento(doc)">
+                    <button class="btn-card-action border-btn" @click="abrirDocumento(doc)">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> 
-                      Ver
+                      Editar
                     </button>
                     <button class="btn-card-action filled-btn" @click="descargarDocumento(doc)">Descargar</button>
-                    <button class="btn-square-share-action">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                    </button>
                   </div>
                 </div>
  
@@ -338,11 +335,7 @@
                   {{ isGenerating ? 'Generando...' : 'Descargar PDF' }}
                 </button>
                 <div class="preview-action-double-row-grid">
-                  <button class="btn-preview-row-action-white">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                    Compartir
-                  </button>
-                  <button class="btn-preview-row-action-white">
+                  <button class="btn-preview-row-action-white" @click="irAExpediente">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                     Expediente
                   </button>
@@ -365,7 +358,7 @@
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
           <h2 class="success-modal-heading-title">Documento generado correctamente</h2>
-          <p class="success-modal-heading-subtitle">El documento ya está disponible para descargar o compartir.</p>
+          <p class="success-modal-heading-subtitle">El documento ya está disponible para descargar.</p>
         </div>
  
         <div class="mx-8 split-divider-line"></div>
@@ -402,10 +395,6 @@
             Descargar PDF
           </button>
           <div class="success-modal-double-row-actions">
-            <button class="btn-success-modal-row-action-white">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              Compartir
-            </button>
             <button class="btn-success-modal-row-action-white" @click="cerrarModal(); subview = 'list'">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               Ver expediente
@@ -479,6 +468,11 @@ const fetchDocuments = async () => {
 onMounted(() => {
   fetchCurrentUser()
   fetchDocuments()
+
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('view') === 'generator' || !params.has('view')) {
+    subview.value = 'generator'
+  }
 })
 
 
@@ -524,8 +518,46 @@ const abrirGeneradorConTemplate = (templateId) => {
   subview.value = 'generator'
 }
  
-const descargarDocumento = (doc) => {
-  if (doc.downloadUrl) window.open(doc.downloadUrl, '_blank')
+const templateIdFromTitle = (title) => {
+  const map = {
+    'Acuerdo Amistoso': 'acuerdo',
+    'Carta de Reclamo': 'reclamo',
+    'Denuncia Formal': 'denuncia',
+  }
+  return map[title] || null
+}
+
+const descargarDocumento = async (doc) => {
+  if (!doc.downloadUrl) {
+    alert('No hay archivo disponible para descargar.')
+    return
+  }
+
+  try {
+    await axios.patch(`/api/documentos/${doc.id}/descargar`)
+    await fetchDocuments()
+    window.open(doc.downloadUrl, '_blank')
+  } catch (error) {
+    console.error('Error marcando documento como descargado:', error)
+    window.open(doc.downloadUrl, '_blank')
+  }
+}
+
+const abrirDocumento = async (doc) => {
+  const template = doc.template || templateIdFromTitle(doc.name)
+  if (!template) {
+    alert('No se puede editar este documento porque no tiene plantilla reconocida.')
+    return
+  }
+
+  selectedTemplate.value = template
+  formData.value = doc.contenido?.datos ? { ...doc.contenido.datos } : {}
+  errorMsg.value = ''
+  subview.value = 'generator'
+}
+
+const irAExpediente = () => {
+  window.location.href = '/mis-expedientes'
 }
 
 const guardarBorrador = async () => {
@@ -672,6 +704,11 @@ const generarDocumento = async () => {
     const filename =
       filenameByTemplate[selectedTemplate.value]
     
+    if (lastGeneratedUrl.value) {
+      URL.revokeObjectURL(lastGeneratedUrl.value)
+      lastGeneratedUrl.value = ''
+    }
+
     const a = document.createElement('a')
     a.href = url
     a.download = filename
@@ -679,12 +716,9 @@ const generarDocumento = async () => {
     a.click()
     document.body.removeChild(a)
 
-    URL.revokeObjectURL(url)
-
-    // Datos para modal
+    lastGeneratedUrl.value = url
     lastGeneratedFilename.value = filename
-    fechaGeneracion.value = new Date()
-      .toLocaleString('es-SV')
+    fechaGeneracion.value = new Date().toLocaleString('es-SV')
 
 
     // Mostrar modal de éxito
@@ -736,10 +770,13 @@ const buildPayload = () => {
  
 const descargarUltimoDoc = () => {
   if (!lastGeneratedUrl.value) return
+
   const a = document.createElement('a')
-  a.href     = lastGeneratedUrl.value
+  a.href = lastGeneratedUrl.value
   a.download = lastGeneratedFilename.value
+  document.body.appendChild(a)
   a.click()
+  document.body.removeChild(a)
 }
 
 const cerrarModal = () => {
