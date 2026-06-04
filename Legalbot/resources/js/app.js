@@ -10,6 +10,8 @@ import registro from './components/registro.vue';
 import MisExpediente from './components/MisExpediente.vue';
 import DetalleExpediente from './components/DetalleExpediente.vue';
 import Documentos from './components/Documentos.vue';
+import MapComponent from './components/MapComponent.vue';
+import DirectorioPage from './components/DirectorioPage.vue';
 
 const app = createApp({})
 
@@ -23,5 +25,7 @@ app.component('chat-legal',ChatLegal)
 app.component('mis-expediente', MisExpediente)
 app.component('detalle-expediente', DetalleExpediente)
 app.component('documentos',Documentos)
+app.component('map-component', MapComponent)
+app.component('directorio-page', DirectorioPage)
 
 app.mount('#app')

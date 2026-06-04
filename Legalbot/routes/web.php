@@ -26,6 +26,10 @@ Route::get('/dashboard', function () {
     return view('DashboardAdmin');
 })->middleware('auth');
 
+Route::get('/directorio', function () {
+    return view('Directorio');
+})->middleware('auth');
+
 Route::get('/usuarios', function () {
     return view('GestionUsuarios');
 })->middleware('auth');
