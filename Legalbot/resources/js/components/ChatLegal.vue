@@ -34,7 +34,7 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </span> Documentos
         </a>
-        <a href="#" class="nav-item">
+        <a href="/directorio" class="nav-item">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </span> Directorio
@@ -104,7 +104,6 @@
                     <div v-if="mensaje.showAbogados" class="contact-lawyers-list">
                       <div v-if="mensaje.listaAbogados && mensaje.listaAbogados.length > 0">
                         <div v-for="(abogado, idx) in mensaje.listaAbogados" :key="`abogado-${idx}-${abogado.telefono}`" class="contact-lawyer-item">
-                          <img :src="getAbogadoImageUrl(abogado.imagen)" alt="Foto de abogado" class="contact-lawyer-avatar" />
                           <div class="contact-lawyer-info">
                             <p class="contact-lawyer-name">{{ abogado.nombre }}</p>
                             <p class="contact-lawyer-specialty">{{ abogado.especialidad }}</p>
@@ -167,9 +166,6 @@
                 </div>
                 <div v-else>
                   <div v-for="abogado in lawyers" :key="abogado.id" class="lawyer-card-horizontal">
-                    <div class="lawyer-avatar-container" :style="{ background: abogado.color }">
-                      {{ abogado.avatar }}
-                    </div>
                     <div class="lawyer-info-flex">
                       <div class="lawyer-header-meta">
                         <h4>{{ abogado.nombre }}</h4>
@@ -209,7 +205,7 @@
           <section class="panel-block">
             <p class="section-block-title">Mis acciones</p>
             <div class="actions-grid-mini">
-              <div class="action-mini-box bg-purple-tint">
+              <div class="action-mini-box bg-purple-tint"> 
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 <p>Nueva Consulta</p>
               </div>
@@ -267,9 +263,6 @@
                 <span class="query-arrow-icon">›</span>
               </button>
             </div>
-            <button class="btn-trigger-all-history-modal" @click="window.location.href = '/mis-expedientes'">
-              Ver todas las consultas
-            </button>
           </section>
 
           <section class="panel-block">

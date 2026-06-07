@@ -37,18 +37,6 @@
           </svg>
           Gestión de Abogados
         </a>
-        <a href="#" class="nav-item" @click.prevent="handleFeaturePaused('Gestión de Consultas')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-          </svg>
-          Gestión de Consultas
-        </a>
-        <a href="#" class="nav-item" @click.prevent="handleFeaturePaused('Gestión de Expedientes')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-          </svg>
-          Gestión de Expedientes
-        </a>
       </nav>
 
       <div class="sidebar-logout">
@@ -94,30 +82,6 @@
             <p class="stat-value">{{ totalAbogados }}</p>
           </div>
           <div class="stat-change positive">+2</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon icon-green">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <p class="stat-label">Consultas activas</p>
-            <p class="stat-value">{{ consultasAbogado }}</p>
-          </div>
-          <div class="stat-change positive">+5%</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon icon-amber">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <p class="stat-label">Expedientes</p>
-            <p class="stat-value">{{ expedientes }}</p>
-          </div>
-          <div class="stat-change neutral">0%</div>
         </div>
       </div>
 
@@ -165,30 +129,6 @@
               <div>
                 <p class="quick-label">Catálogo Abogados</p>
                 <p class="quick-sub">Ver registro de abogados</p>
-              </div>
-            </a>
-            <a href="#" class="quick-link" @click.prevent="handleFeaturePaused('Crear expediente')">
-              <div class="quick-icon icon-green">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-                  <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
-                </svg>
-              </div>
-              <div>
-                <p class="quick-label">Crear Expediente</p>
-                <p class="quick-sub">Funcionalidad en pausa</p>
-              </div>
-            </a>
-            <a href="#" class="quick-link" @click.prevent="handleFeaturePaused('Ver consultas')">
-              <div class="quick-icon icon-amber">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-                  <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
-                </svg>
-              </div>
-              <div>
-                <p class="quick-label">Ver Consultas</p>
-                <p class="quick-sub">Funcionalidad en pausa</p>
               </div>
             </a>
           </div>
