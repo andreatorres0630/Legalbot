@@ -356,7 +356,7 @@ export default {
           response = await axios.put(`/abogados/${this.abogadoForm.id}`, payload);
           const index = this.abogados.findIndex(a => a.id === this.abogadoForm.id);
           if (index !== -1) {
-            this.$set(this.abogados, index, this.mapAbogado(response.data));
+            this.abogados.splice(index, 1, this.mapAbogado(response.data));
           }
         } else {
           response = await axios.post('/abogados', payload);

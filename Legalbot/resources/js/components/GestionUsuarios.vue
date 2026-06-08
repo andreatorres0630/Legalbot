@@ -79,8 +79,6 @@
           <option value="">Todos los roles</option>
           <option value="admin">Admin</option>
           <option value="ciudadano">Usuario</option>
-          <option value="empleador">Empleador</option>
-          <option value="ong">ONG</option>
         </select>
       </div>
 
@@ -214,8 +212,6 @@
                   <option value="">Seleccionar rol</option>
                   <option value="admin">Admin</option>
                   <option value="ciudadano">Usuario</option>
-                  <option value="empleador">Empleador</option>
-                  <option value="ong">ONG</option>
                 </select>
               </div>
               <div class="form-group">

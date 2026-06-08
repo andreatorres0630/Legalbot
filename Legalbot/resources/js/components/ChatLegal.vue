@@ -180,8 +180,8 @@
                       </div>
                     </div>
                     <div class="lawyer-actions-column">
-                      <button class="btn-lawyer-action contact">Contactar</button>
-                      <button class="btn-lawyer-action profile">Ver perfil</button>
+                      <button class="btn-lawyer-action contact" @click.prevent="seleccionarAbogado(abogado)">Contactar</button>
+                      <button class="btn-lawyer-action profile" @click.prevent="seleccionarAbogado(abogado)">Ver perfil</button>
                     </div>
                   </div>
                 </div>
@@ -205,14 +205,30 @@
           <section class="panel-block">
             <p class="section-block-title">Mis acciones</p>
             <div class="actions-grid-mini">
-              <div class="action-mini-box bg-purple-tint"> 
+              <div class="action-mini-box bg-purple-tint" @click="nuevaConsulta"> 
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 <p>Nueva Consulta</p>
               </div>
-              <div class="action-mini-box bg-blue-tint">
+              <div class="action-mini-box bg-blue-tint" @click="generarDocumento">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F7CF7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <p>Generar Documento</p>
               </div>
+            </div>
+          </section>
+
+          <section v-if="selectedLawyer" class="panel-block">
+            <p class="section-block-title">Abogado seleccionado</p>
+            <div class="selected-lawyer-card">
+              <div class="selected-lawyer-avatar">{{ selectedLawyer.nombre.charAt(0) || 'A' }}</div>
+              <div class="selected-lawyer-details">
+                <h5 class="selected-lawyer-name">{{ selectedLawyer.nombre }}</h5>
+                <p class="selected-lawyer-specialty">{{ selectedLawyer.especialidad }}</p>
+                <div class="selected-lawyer-contact">
+                  <span>📞 {{ selectedLawyer.telefono || 'No disponible' }}</span>
+                  <span>✉️ {{ selectedLawyer.correo || 'No disponible' }}</span>
+                </div>
+              </div>
+              <button class="selected-lawyer-close" @click="cerrarSelectedLawyer">Cerrar</button>
             </div>
           </section>
 
@@ -221,19 +237,19 @@
             <div class="visual-minimap">
               <div class="map-graphic-layer">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F7CF7" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                <span class="map-tag-label">San Miguel, El Salvador</span>
+                <span class="map-tag-label">{{ currentLocationText }}</span>
               </div>
               <div class="minimap-footer-card">
                 <div class="institution-avatar">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4F7CF7" stroke-width="2"><rect x="2" y="10" width="20" height="12" rx="2"/><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
                 </div>
                 <div>
-                  <h5>PNC (Policía Nacional Civil)</h5>
+                  <h5>Centro de asistencia local</h5>
                   <p>0.4 km · 4a Calle Poniente, San Miguel</p>
                 </div>
               </div>
             </div>
-            <a href="#" class="panel-purple-link">Ver más instituciones ›</a>
+            <a href="#" class="panel-purple-link" @click.prevent="verMasInstituciones">Ver más instituciones ›</a>
           </section>
 
           <section class="panel-block">
@@ -247,13 +263,13 @@
                     <p>{{ sug.specialty }} · <span :style="{ color: sug.status === 'available' ? '#22C55E' : '#F59E0B' }">●</span></p>
                   </div>
                 </div>
-                <button class="btn-sug-contact-mini">Contactar</button>
+                <button class="btn-sug-contact-mini" @click.prevent="seleccionarAbogado({ nombre: sug.name, especialidad: sug.specialty, telefono: '', correo: '' })">Contactar</button>
               </div>
             </div>
           </section>
 
           <section class="panel-block">
-            <p class="section-block-title">Mis últimas consultas</p>
+            <p class="section-block-title">Consultas frecuentes</p>
             <div class="recent-queries-stack">
               <button v-for="query in recentQueries" :key="query.label" class="recent-query-row-btn" @click.prevent="handleSuggestedQuery(query.label)">
                 <span class="query-icon-wrap">
@@ -371,6 +387,7 @@ export default {
         nombre: 'Usuario',
         apellido: '',
       },
+      currentLocationText: 'Ubicación no disponible',
       nuevoMensaje: '',
       historialMensajes: [],
       showModal: false,
@@ -383,6 +400,7 @@ export default {
         { name: 'Laura Méndez', specialty: 'Accidentes', status: 'available' },
         { name: 'María López', specialty: 'Daños Materiales', status: 'busy' },
       ],
+      selectedLawyer: null,
       recentQueries: [
         { label: '¿Qué hacer tras un choque?', color: '#4F7CF7' },
         { label: 'Reclamar daños materiales', color: '#F59E0B' },
@@ -400,6 +418,7 @@ export default {
   },
   async mounted() {
     await this.fetchCurrentUser()
+    await this.loadCurrentLocation()
     await this.cargarHistorialSiExiste()
     this.scrollAlFinal()
   },
@@ -612,13 +631,61 @@ export default {
       await this.$nextTick()
       await this.enviarMensaje()
     },
+    nuevaConsulta() {
+      this.historialMensajes = []
+      this.nuevoMensaje = ''
+      this.selectedLawyer = null
+      this.showLawyers = false
+      this.scrollAlFinal()
+    },
+    generarDocumento() {
+      window.location.href = '/documentos?view=generator'
+    },
+    verMasInstituciones() {
+      window.location.href = '/directorio'
+    },
+    seleccionarAbogado(abogado) {
+      this.selectedLawyer = {
+        id: abogado.id || null,
+        nombre: abogado.nombre || abogado.name || 'Abogado',
+        especialidad: abogado.especialidad || abogado.specialty || 'Sin especialidad',
+        telefono: abogado.telefono || abogado.phone || 'No disponible',
+        correo: abogado.correo || abogado.email || 'No disponible',
+        estado: abogado.estado || abogado.status || 'unknown'
+      }
+      this.showLawyers = true
+      this.scrollAlFinal()
+    },
+    cerrarSelectedLawyer() {
+      this.selectedLawyer = null
+    },
     scrollAlFinal() {
       this.$nextTick(() => {
         const container = this.$refs.chatScroll
         if (container) container.scrollTop = container.scrollHeight
       })
-    },
-    getAbogadoImageUrl(imagen) {
+    },    async loadCurrentLocation() {
+      if (!navigator.geolocation) {
+        this.currentLocationText = 'Geolocalización no soportada'
+        return
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords
+          this.currentLocationText = `Ubicación actual: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+        },
+        (error) => {
+          console.warn('No se pudo obtener la ubicación:', error)
+          if (error.code === error.PERMISSION_DENIED) {
+            this.currentLocationText = 'Permiso de ubicación denegado'
+          } else {
+            this.currentLocationText = 'Ubicación no disponible'
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      )
+    },    getAbogadoImageUrl(imagen) {
       return imagen ? `/storage/${imagen}` : '/storage/abogados/default-avatar.png'
     },
   }
@@ -748,6 +815,14 @@ export default {
 .btn-lawyer-action { border: none; padding: 6px 14px; border-radius: 8px; font-family: 'Sora'; font-size: 12px; font-weight: 600; cursor: pointer; }
 .btn-lawyer-action.contact { background: #7C3AED; color: white; }
 .btn-lawyer-action.profile { background: white; color: #020617; border: 1px solid rgba(0,0,0,0.1); }
+
+.selected-lawyer-card { background: white; border: 1px solid rgba(0,0,0,0.08); border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 14px; }
+.selected-lawyer-avatar { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: #7C3AED; color: white; font-size: 18px; font-weight: 700; }
+.selected-lawyer-details { flex: 1; min-width: 0; }
+.selected-lawyer-name { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #111827; }
+.selected-lawyer-specialty { margin: 0 0 8px; font-size: 12px; color: #64748B; }
+.selected-lawyer-contact { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #334155; }
+.selected-lawyer-close { border: none; background: transparent; color: #7C3AED; cursor: pointer; font-size: 13px; padding: 0; }
 
 .sticky-chat-input-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 30px; background: linear-gradient(to top, #F8FAFC 80%, transparent); }
 .input-wrapper-flex { background: white; border: 1px solid rgba(0,0,0,0.1); border-radius: 16px; padding: 6px 6px 6px 18px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
