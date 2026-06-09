@@ -256,6 +256,10 @@ admin@legalbot.sv
 ```text
 Contraseña:
 admin123
+o probar
+1234
+o
+12345678
 ```
 
 ---
